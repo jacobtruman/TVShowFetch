@@ -1,0 +1,3 @@
+[submodule "tvshow_configs"]
+	path = tvshow_configs
+	url = git@github.com:jacobtruman/tvshow_configs.git
