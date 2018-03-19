@@ -1,13 +1,9 @@
 import os.path
 import requests
-import inspect
 import logger
 import youtube_dl
-
 import sys
 
-from os.path import expanduser
-from subprocess import Popen, PIPE
 from fetchers import *
 
 
@@ -21,7 +17,7 @@ class TVShowFetch:
         if args is None:
             args = {}
 
-        self.home_dir = expanduser("~")
+        self.home_dir = os.path.expanduser("~")
         self.base_dir = '{0}/TVShows'.format(self.home_dir)
         self.title_filter = ""
         self.latest = True
@@ -36,7 +32,6 @@ class TVShowFetch:
         self.logger = logger.Logger({'colorize': True})
         self.downloaded = []
         self.extension = ".mp4"
-        self.ffmpeg = None
 
         self.ydl_opts = {
             'format': self.extension.replace(".", ""),
@@ -56,12 +51,6 @@ class TVShowFetch:
         # print('ETA: {0}\tTime Elapsed: {1}\tSpeed (bytes/second): {2}'.format(d['eta'], d['elapsed'], d['speed']))
         if d['status'] == 'finished':
             print('Done downloading, now compressing...')
-
-    def get_ffmpeg(self):
-        if self.ffmpeg is None:
-            self.ffmpeg = self.run_command("which ffmpeg", True)
-
-        return self.ffmpeg
 
     def process_config(self, config):
         """
@@ -198,54 +187,6 @@ class TVShowFetch:
 
         return ret
 
-    def process_url_OLD(self, url, filename=None):
-        """
-        Process show url provided
-        :param url:
-        :param filename:
-        :return: Boolean
-        """
-        self.logger.info("Filename passed in: {0}".format(filename))
-        filename_auto = self.get_filename_OLD(url)
-        if filename_auto is not False:
-            self.logger.info("Filename discovered: {0}".format(filename_auto))
-
-        cmd = self.get_fetch_command()
-
-        if filename is not None:
-            cmd += " -o '{0}.%(ext)s'".format(filename)
-        elif filename_auto:
-            filename = filename_auto
-        else:
-            self.add_to_errors("Unable to process url: {0}".format(url))
-            return False
-
-        file_info = self.get_file_info(filename)
-
-        cmd = "{0} {1}".format(cmd, url)
-
-        new_filename = None
-        if file_info['extension'] != self.extension:
-            new_filename = filename.replace(file_info['extension'], self.extension)
-
-        if new_filename is not None and os.path.exists(new_filename):
-            self.logger.info("File already exists: {0}".format(new_filename))
-        elif new_filename is None and os.path.exists(filename):
-            self.logger.info("File already exists: {0}".format(filename))
-        else:
-            if self.execute:
-                if self.run_command(cmd):
-                    self.convert(filename, new_filename)
-                    if new_filename is None:
-                        downloaded = new_filename
-                    else:
-                        downloaded = filename
-                    self.add_to_downloaded(downloaded)
-            else:
-                self.logger.debug("NOT EXECUTING COMMAND: {0}".format(cmd))
-
-        return True
-
     def process_url(self, url, filename):
         """
         Process show url provided
@@ -275,85 +216,9 @@ class TVShowFetch:
         else:
             self.logger.debug("NOT EXECUTING:\nurl: {0}\nfilename: {1}".format(url, filename))
 
-    def get_filename_OLD(self, url):
-        """
-        Get filename of the show url provided via the youtube-dl script
-        :param url:
-        :return: filename of show
-        """
-        cmd = "{0} --get-filename {1}".format(self.get_fetch_command(), url)
-        self.logger.info("{0}".format(cmd))
-
-        return self.run_command(cmd, True)
-
     def get_filename(self, show_title, season_number, episode_string):
         return "{0}/{1}/Season {2}/{1} - {3}{4}".format(self.base_dir, show_title, season_number, episode_string,
                                                         self.extension)
-
-    def run_command(self, cmd, output=False):
-        """
-        Run command provided
-        :param cmd:
-        :param output:
-        :return: output of command
-        """
-        ret = True
-
-        self.logger.info("Running command: {0}".format(cmd))
-
-        p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
-        out, err = p.communicate()
-        status = p.returncode
-
-        if self.verbose:
-            if len(out.rstrip()) > 0:
-                self.logger.debug(out.rstrip())
-            if len(err.rstrip()) > 0:
-                self.logger.error(err.rstrip())
-
-        if status != 0:
-            self.logger.set_prefix("[ In {0} ]".format(inspect.stack()[0][3]))
-            self.add_to_errors("the command '{0}' exited with code '{1}': {2}".format(cmd, status, err.rstrip()))
-            ret = False
-        else:
-            if output:
-                ret = out.rstrip()
-
-        return ret
-
-    def convert(self, filename=None, new_filename=None):
-        """
-        Convert file provided
-        :param filename:
-        :param new_filename:
-        """
-        if filename is not None:
-            rename = False
-            file_info = self.get_file_info(filename)
-
-            if new_filename is None or file_info['extension'] == self.extension:
-                new_filename = filename.replace(file_info['extension'], "NEW{0}".format(self.extension))
-                rename = True
-
-            cmd = "{0} -i '{1}' -c:v libx264 '{2}'".format(self.get_ffmpeg(), filename, new_filename)
-            if self.run_command(cmd):
-                self.logger.info("Deleting source file '{0}'".format(filename))
-                os.remove(filename)
-                if rename:
-                    os.rename(new_filename, filename)
-            else:
-                self.logger.info(
-                    "Conversion failed; keeping source file '{0}'".format(filename))
-        else:
-            self.add_to_errors("Filename cannot be empty")
-
-    def get_fetch_command(self):
-        """
-        Get the youtube-dl command to be used to fetch the show
-        :return: fetch command
-        """
-        return "youtube-dl --no-mtime --audio-quality 0 --no-check-certificate -o '{0}/%(series)s/Season %(season_number)s/%(series)s - S%(season_number)02dE%(episode_number)02d.%(ext)s'".format(
-            self.base_dir)
 
     def add_to_errors(self, error):
         """
