@@ -2,7 +2,6 @@ import os.path
 import json
 import glob
 import tv_show_fetch
-import datetime
 
 from os.path import expanduser
 
@@ -31,6 +30,6 @@ for config_file in config_files:
             if config['network'] == network:
                 fetcher.process_config(config)
             else:
-                print("Network is not {0} skipping".format(network))
+                print("Network {0} is not {1} skipping".format(config['network'], network))
         except ValueError, e:
             print(e.message)

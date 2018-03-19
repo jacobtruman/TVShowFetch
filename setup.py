@@ -10,6 +10,6 @@ setup(
     url='',
     packages=['TVShowFetch'],
     scripts=[],
-    install_requires=['requests', 'beautifulsoup4'],
+    install_requires=['requests', 'beautifulsoup4', 'youtube_dl'],
     dependency_links=[]
 )

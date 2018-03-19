@@ -1,7 +1,4 @@
-import os.path
-
-
-class Logger:
+class Logger(object):
     STYLES = {
         'BLACK': '\033[0;30m',
         'RED': '\033[0;31m',
@@ -55,9 +52,24 @@ class Logger:
             print("Invalid log type: {0}".format(type))
             return None
 
-    def add_to_log(self, msg, type="INFO"):
+    def info(self, msg):
+        self._add_to_log(msg, "INFO")
+
+    def success(self, msg):
+        self._add_to_log(msg, "SUCCESS")
+
+    def debug(self, msg):
+        self._add_to_log(msg, "DEBUG")
+
+    def warning(self, msg):
+        self._add_to_log(msg, "WARNING")
+
+    def error(self, msg):
+        self._add_to_log(msg, "ERROR")
+
+    def _add_to_log(self, msg, type="INFO"):
         if type not in self.log_types:
-            self.add_to_log("Invalid log type: {0}".format(type), "WARNING")
+            self._add_to_log("Invalid log type: {0}".format(type), "WARNING")
             type = "INFO"
 
         prefix = self.get_prefix()
@@ -70,6 +82,6 @@ class Logger:
         self.log_types[type]['DATA'].append(msg_string)
 
         if self.colorize:
-            print("{0}{1}".format(self.log_types[type]['STYLE'], msg_string))
+            print("{0}{1}{2}".format(self.log_types[type]['STYLE'], msg_string, self.STYLES['RESET']))
         else:
             print(msg_string)
