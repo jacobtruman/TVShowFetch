@@ -28,7 +28,7 @@ for config_file in config_files:
     if config_file != base_config_file:
         try:
             config = json.loads(open(config_file, "r").read())
-            network = "Disney Jr"
+            network = "HGTV"
             if config['network'] == network:
                 fetcher.process_config(config)
             else:

@@ -6,12 +6,16 @@ import json
 
 
 class NBC(Network):
+    """NBC network class"""
 
     def get_show(self, show_info):
         """
         Process NBC show provided
         :param show_info:
         """
+        if not super(self.__class__, self).get_show(show_info):
+            return False
+
         base_url = "https://api.nbc.com/v3.14/videos"
         page_size = 50
         show_title = show_info['show_title']
@@ -90,3 +94,4 @@ class NBC(Network):
                                                                                            'url': episode_url}
 
                 self.caller.process_episodes(episode_data)
+        return True

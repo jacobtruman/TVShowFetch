@@ -3,12 +3,16 @@ import json
 
 
 class FOX(Network):
+    """FOX network class"""
 
     def get_show(self, show_info):
         """
         Get FOX show provided
         :param config:
         """
+        if not super(self.__class__, self).get_show(show_info):
+            return False
+
         show_title = show_info['show_title']
         show_id = show_info['show_id']
 
@@ -45,3 +49,4 @@ class FOX(Network):
                                                                                                'url': episode_url}
 
         self.caller.process_episodes(episode_data)
+        return True

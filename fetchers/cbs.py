@@ -3,12 +3,16 @@ import json
 
 
 class CBS(Network):
+    """CBS network class"""
 
     def get_show(self, show_info):
         """
         Get CBS show provided
         :param config:
         """
+        if not super(self.__class__, self).get_show(show_info):
+            return False
+
         base_url = "https://www.cbs.com"
         offset = 0
         limit = 100
@@ -79,3 +83,4 @@ class CBS(Network):
                                                                                    'url': episode_url}
 
             self.caller.process_episodes(episode_data)
+        return True

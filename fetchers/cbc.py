@@ -3,12 +3,16 @@ from bs4 import BeautifulSoup
 
 
 class CBC(Network):
+    """CBC network class"""
 
     def get_show(self, show_info):
         """
         Process CBC show provided
         :param show_info:
         """
+        if not super(self.__class__, self).get_show(show_info):
+            return False
+
         base_url = "http://www.cbc.ca"
         show_title = show_info['show_title']
         show_id = show_info['show_id']
@@ -83,3 +87,4 @@ class CBC(Network):
                                             'filename': filename, 'url': episode_url}
 
                 self.caller.process_episodes(episode_data)
+        return True

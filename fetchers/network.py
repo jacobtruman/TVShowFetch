@@ -1,4 +1,5 @@
 class Network(object):
+    """Base network class"""
 
     def __init__(self, caller):
         self.caller = caller

@@ -3,19 +3,21 @@ from network import Network
 from bs4 import BeautifulSoup
 
 
-class ABC(Network):
-    """ABC network class"""
+class HGTV(Network):
+    """HGTV network class"""
 
     def get_show(self, show_info):
         """
-        Process ABC show provided
+        Process HGTV show provided
         :param show_info:
         """
         if not super(self.__class__, self).get_show(show_info):
             return False
 
-        base_url = "http://abc.go.com"
         show_title = show_info['show_title']
+        episode_data = {'show': show_title, 'episodes': {}}
+        """base_url = "http://abc.go.com"
+        
         show_url = "{0}/shows/{1}/episode-guide/".format(base_url, show_info['show_id'])
 
         response = self.caller.request_data({"url": show_url})
@@ -68,7 +70,7 @@ class ABC(Network):
                                             episode_data['episodes'][season_number] = {}
                                         if episode_number not in episode_data['episodes'][season_number]:
                                             episode_data['episodes'][season_number][episode_number] = {
-                                                'filename': filename, 'url': episode_url}
+                                                'filename': filename, 'url': episode_url}"""
 
-            self.caller.process_episodes(episode_data)
+        self.caller.process_episodes(episode_data)
         return True

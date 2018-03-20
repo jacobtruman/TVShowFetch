@@ -4,6 +4,7 @@ import json
 
 
 class DisneyJr(Network):
+    """Disney Jr network class"""
 
     def get_show(self, show_info):
         """

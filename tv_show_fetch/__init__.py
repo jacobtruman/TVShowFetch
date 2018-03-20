@@ -71,8 +71,6 @@ class TVShowFetch(object):
                 if count > 0:
                     num = 0
                     for show_info in shows:
-                        if 'Elena' not in show_info['show_title']:
-                            return False
                         num += 1
                         self.logger.info(
                             "Processing show {0} / {1} :: '{2}'".format(num, count, show_info['show_title']))
