@@ -1,13 +1,11 @@
+from network import Network
 import datetime
 import time
 import urllib
 import json
 
 
-class NBC:
-
-    def __init__(self, caller):
-        self.caller = caller
+class NBC(Network):
 
     def get_show(self, show_info):
         """

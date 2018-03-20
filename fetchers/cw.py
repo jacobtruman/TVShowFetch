@@ -1,13 +1,15 @@
+from network import Network
 import datetime
 import json
 
 
-class CW:
-
-    def __init__(self, caller):
-        self.caller = caller
+class CW(Network):
 
     def get_show(self, show_info):
+        """
+        Get CW show provided
+        :param config:
+        """
         show_title = show_info['show_title']
         show_id = show_info['show_id']
 

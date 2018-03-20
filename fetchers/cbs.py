@@ -1,10 +1,8 @@
+from network import Network
 import json
 
 
-class CBS:
-
-    def __init__(self, caller):
-        self.caller = caller
+class CBS(Network):
 
     def get_show(self, show_info):
         """

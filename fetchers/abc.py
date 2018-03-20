@@ -1,10 +1,9 @@
+from network import Network
+
 from bs4 import BeautifulSoup
 
 
-class ABC:
-
-    def __init__(self, caller):
-        self.caller = caller
+class ABC(Network):
 
     def get_show(self, show_info):
         """
@@ -56,7 +55,8 @@ class ABC:
                                         episode = episode_number.zfill(2)
                                         episode_string = "S{0}E{1}".format(season, episode)
 
-                                        filename = self.caller.get_filename(show_title, season_number, episode_string)
+                                        filename = self.caller.get_filename(
+show_title, season_number, episode_string)
                                         episode_url = "{0}{1}".format(base_url,
                                                                       season_div.attrs['data-url']).strip()
 

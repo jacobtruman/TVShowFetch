@@ -2,6 +2,8 @@ import os.path
 import json
 import glob
 import tv_show_fetch
+from tv_show_fetch import thetvdbapi
+import sys
 
 from os.path import expanduser
 
@@ -19,14 +21,14 @@ if os.path.exists(base_config_file):
     except ValueError, e:
         print(e.message)
 
-fetcher = tv_show_fetch.TVShowFetch([])
+fetcher = tv_show_fetch.TVShowFetch({'base_config': base_config})
 
 for config_file in config_files:
     # exclude base config (config.json)
     if config_file != base_config_file:
         try:
             config = json.loads(open(config_file, "r").read())
-            network = "NBC"
+            network = "Nick Jr"
             if config['network'] == network:
                 fetcher.process_config(config)
             else:

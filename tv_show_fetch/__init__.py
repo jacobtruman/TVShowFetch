@@ -1,35 +1,39 @@
 import os.path
-import requests
+import utils
 import logger
+import thetvdbapi
 import youtube_dl
 import sys
 
 from fetchers import *
 
 
-class TVShowFetch:
+class TVShowFetch(object):
 
-    def __init__(self, args=None):
+    def __init__(self, args):
         """
         Class to fetch TV shows from network websites
         :param args:
         """
-        if args is None:
-            args = {}
+        if 'base_config' not in args:
+            raise ValueError('base_config not provided')
+        elif 'tvdb' not in args['base_config']:
+            raise ValueError('tvdb not provided in base_config')
 
         self.home_dir = os.path.expanduser("~")
         self.base_dir = '{0}/TVShows'.format(self.home_dir)
         self.title_filter = ""
         self.latest = True
         self.verbose = True
-        self.execute = True
+        self.execute = False
 
         # override any default settings defined in params
-        if args is not None:
-            for arg in args:
+        for arg in args:
+            if arg != 'base_config':
                 self.__dict__[arg] = arg[arg]
 
         self.logger = logger.Logger({'colorize': True})
+        self.thetvdbapi = thetvdbapi.TheTVDBApi(self, args['base_config']['tvdb'])
         self.downloaded = []
         self.extension = ".mp4"
 
@@ -57,10 +61,11 @@ class TVShowFetch:
         Process the config provided
         :param config:
         """
-        module_name = "fetchers.{0}".format(config['network'].lower())
+        network = config['network'].replace(' ', '')
+        module_name = "fetchers.{0}".format(network.lower())
         if module_name in sys.modules:
             method = "get_show"
-            module = getattr(sys.modules[module_name], config['network'])(self)
+            module = getattr(sys.modules[module_name], network)(self)
             if hasattr(module, method):
                 shows = self.get_active_shows(config['shows'])
                 count = len(shows)
@@ -70,11 +75,14 @@ class TVShowFetch:
                         num += 1
                         self.logger.info(
                             "Processing show {0} / {1} :: '{2}'".format(num, count, show_info['show_title']))
-                        if show_info['show_title'] == "The Good Place":
-                            getattr(module, method)(show_info)
+                        if 'apiKey' in config:
+                            show_info['headers'] = {
+                                'apiKey': config['apiKey']
+                            }
+
+                        getattr(module, method)(show_info)
             else:
-                self.add_to_errors(
-                    "Module '{0}' does not have method '{1}'".format(module_name, method))
+                self.add_to_errors("Module '{0}' does not have method '{1}'".format(module_name, method))
         else:
             self.add_to_errors("Module '{0}' does not exist".format(module_name))
 
@@ -100,32 +108,9 @@ class TVShowFetch:
         return active_shows
 
     def request_data(self, args=None):
-        """
-        Request data from url
-        :param args:
-        :return: data from url
-        """
-        if 'url' not in args:
-            self.logger.error("No url provided")
-            return False
-
-        if 'headers' not in args:
-            args['headers'] = {}
-
-        if 'method' not in args:
-            args['method'] = "get"
-
-        if args['method'] == 'post':
-            response = requests.post(args['url'], headers=args['headers'])
-        else:
-            response = requests.get(args['url'], headers=args['headers'])
-
-        if response.status_code == 200:
-            return response
-        else:
-            self.logger.error(
-                "Something went wrong: '{0}' returned status code {1}".format(args['url'], response.status_code))
-            return False
+        if 'logger' not in args:
+            args['logger'] = self.logger
+        return utils.request_data(args)
 
     def process_episodes(self, episode_data):
         """
@@ -214,7 +199,7 @@ class TVShowFetch:
                 else:
                     return False
         else:
-            self.logger.debug("NOT EXECUTING:\nurl: {0}\nfilename: {1}".format(url, filename))
+            self.logger.debug("NOT EXECUTING:\n\turl: {0}\n\tfilename: {1}".format(url, filename))
 
     def get_filename(self, show_title, season_number, episode_string):
         return "{0}/{1}/Season {2}/{1} - {3}{4}".format(self.base_dir, show_title, season_number, episode_string,
@@ -251,49 +236,3 @@ class TVShowFetch:
             print("\t[-] {0} errors encountered during execution".format(len(errors)))
             for error in errors:
                 print("\t\t{0}".format(error))
-
-    @staticmethod
-    def sanitize_string(string, to_replace=None):
-        """
-        Sanitize string for comparison purposes
-        :param string:
-        :param to_replace:
-        :return: sanitized string
-        """
-        if to_replace is None:
-            to_replace = {}
-        string = string.strip().lower()
-        to_replace[' & '] = " and "
-        to_replace["'"] = ""
-        to_replace['"'] = ""
-        to_replace['!'] = ""
-        to_replace[','] = ""
-
-        # strip off leading "the "
-        if string.startswith("the "):
-            string = string[4:None]
-
-        # strip off leading "a "
-        if string.startswith("a "):
-            string = string[2:None]
-
-        # replace custom replacements
-        for search, replace in to_replace.iteritems():
-            if search in string:
-                string = string.replace(search.lower(), replace.lower())
-
-        return string.strip()
-
-    @staticmethod
-    def get_file_info(file_path):
-        """
-        Get infor for file path provided
-        :param file_path:
-        :return: dictionary of file information
-        """
-        absolute_path = os.path.abspath(file_path)
-        dirname = os.path.dirname(absolute_path)
-        basename = os.path.basename(absolute_path)
-        extension = os.path.splitext(absolute_path)[-1]
-
-        return {'absolute_path': absolute_path, 'dirname': dirname, 'basename': basename, 'extension': extension}
