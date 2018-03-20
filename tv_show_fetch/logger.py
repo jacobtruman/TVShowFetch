@@ -42,6 +42,9 @@ class Logger(object):
     def set_prefix(self, value):
         self.prefix = value
 
+    def reset_prefix(self):
+        self.prefix = None
+
     def get_prefix(self):
         return self.prefix
 

@@ -81,6 +81,7 @@ class TVShowFetch(object):
                             }
 
                         getattr(module, method)(show_info)
+                        self.logger.reset_prefix()
             else:
                 self.add_to_errors("Module '{0}' does not have method '{1}'".format(module_name, method))
         else:
@@ -150,7 +151,7 @@ class TVShowFetch(object):
         else:
             self.logger.info("Episode data structure provided is missing required data")
 
-            self.logger.set_prefix(None)
+            self.logger.reset_prefix()
 
     @staticmethod
     def get_latest_episode(episodes):
@@ -211,7 +212,7 @@ class TVShowFetch(object):
         :param error:
         """
         self.logger.error(error)
-        self.logger.set_prefix(None)
+        self.logger.reset_prefix()
 
     def add_to_downloaded(self, filename):
         """
