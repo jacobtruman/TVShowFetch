@@ -29,8 +29,7 @@ class TVShowFetch(object):
 
         # override any default settings defined in params
         for arg in args:
-            if arg != 'base_config':
-                self.__dict__[arg] = arg[arg]
+            self.__dict__[arg] = args[arg]
 
         self.logger = logger.Logger({'colorize': True})
         self.thetvdbapi = thetvdbapi.TheTVDBApi(self, args['base_config']['tvdb'])
@@ -72,6 +71,8 @@ class TVShowFetch(object):
                 if count > 0:
                     num = 0
                     for show_info in shows:
+                        if 'Elena' not in show_info['show_title']:
+                            return False
                         num += 1
                         self.logger.info(
                             "Processing show {0} / {1} :: '{2}'".format(num, count, show_info['show_title']))

@@ -4,22 +4,31 @@ import json
 
 
 class NickJr(Network):
+    """Nick Jr network class"""
 
     def get_show(self, show_info):
         """
         Get Nick Jr show provided
         :param config:
         """
+        if not super(self.__class__, self).get_show(show_info):
+            return False
+
         show_title = show_info['show_title']
         show_id = show_info['show_id']
+
+        if 'sanitize_string' in show_info:
+            sanitize_string = show_info['sanitize_string']
+        else:
+            sanitize_string = {}
+
+        sanitize_string['{0}: '.format(show_title)] = ''
+        sanitize_string['.'] = ''
+
         episode_data = {'show': show_title, 'episodes': {}}
 
         base_url = "http://www.nickjr.com"
         show_url = "{0}/data/propertyVideosStreamPage.json".format(base_url)
-
-        self.tvdb_episodes_data = self.get_tvdb_episodes_data({'thetvdb_id': show_info['thetvdb_id']})
-        if self.tvdb_episodes_data is None:
-            return
 
         offset = 0
         more = True
@@ -39,11 +48,9 @@ class NickJr(Network):
                                     if data['mediaType'] != 'episode' or data['authRequired']:
                                         continue
                                     else:
-                                        title = utils.sanitize_string(data['title'],
-                                                                      {'{0}: '.format(data['seriesTitle']): '', '.': ''})
+                                        title = utils.sanitize_string(data['title'], sanitize_string)
                                         season_number = 0
                                         episode_url = "{0}{1}".format(base_url, data['url'])
-                                        filename = None
                                         eps = []
                                         if '/' in title:
                                             full_title = title
@@ -58,8 +65,10 @@ class NickJr(Network):
                                                     if season_number == 0:
                                                         season_number = record['season_number']
                                                     elif season_number != record['season_number']:
-                                                        self.caller.logger.set_prefix("[ {0} ][ {1} ]".format(show_title, season_number))
-                                                        self.caller.add_to_errors("Cross-season episode '{0}' - skipping".format(title))
+                                                        self.caller.logger.set_prefix(
+                                                            "[ {0} ][ {1} ]".format(show_title, season_number))
+                                                        self.caller.add_to_errors(
+                                                            "Cross-season episode '{0}' - skipping".format(title))
                                                         break
 
                                                     this_episode_number = record['episode_number'].strip()
@@ -67,15 +76,21 @@ class NickJr(Network):
                                                     if first_episode_number is None:
                                                         first_episode_number = this_episode_number
 
-                                                    if last_episode_number is not None and (this_episode_number - last_episode_number) != 1:
-                                                        self.caller.logger.set_prefix("[ {0} ][ {1} ]".format(show_title, season_number))
-                                                        self.caller.add_to_errors("Non-sequential episodes ({0}) ({1} - {2}) - skipping".format(full_title, last_episode_number, this_episode_number));
+                                                    if last_episode_number is not None and (
+                                                            this_episode_number - last_episode_number) != 1:
+                                                        self.caller.logger.set_prefix(
+                                                            "[ {0} ][ {1} ]".format(show_title, season_number))
+                                                        self.caller.add_to_errors(
+                                                            "Non-sequential episodes ({0}) ({1} - {2}) - skipping".format(
+                                                                full_title, last_episode_number, this_episode_number))
                                                         break
 
                                                     last_episode_number = this_episode_number
                                                 else:
                                                     self.caller.logger.set_prefix("[ {0} ]".format(show_title))
-                                                    self.caller.add_to_errors("Unable to find information for episode (MULTI) '{0}' of '{1}' - skipping".format(title, full_title))
+                                                    self.caller.add_to_errors(
+                                                        "Unable to find information for episode (MULTI) '{0}' of '{1}' - skipping".format(
+                                                            title, full_title))
                                                     break
 
                                             if first_episode_number is not None:
@@ -90,7 +105,9 @@ class NickJr(Network):
                                                 eps.append(str(record['episode_number']).zfill(2))
                                             else:
                                                 self.caller.logger.set_prefix("[ {0} ]".format(show_title))
-                                                self.caller.add_to_errors("Unable to find information for episode (SINGLE) '{0}' - skipping".format(title))
+                                                self.caller.add_to_errors(
+                                                    "Unable to find information for episode (SINGLE) '{0}' - skipping".format(
+                                                        title))
                                                 continue
 
                                         episode_number = '-'.join(eps)
@@ -109,3 +126,4 @@ class NickJr(Network):
                 offset += json_obj['pagination']['count']
 
         self.caller.process_episodes(episode_data)
+        return True
