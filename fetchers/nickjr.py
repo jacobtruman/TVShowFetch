@@ -48,6 +48,7 @@ class NickJr(Network):
                                     if data['mediaType'] != 'episode' or data['authRequired']:
                                         continue
                                     else:
+                                        fail = False
                                         title = utils.sanitize_string(data['title'], sanitize_string)
                                         season_number = 0
                                         episode_url = "{0}{1}".format(base_url, data['url'])
@@ -69,6 +70,7 @@ class NickJr(Network):
                                                             "[ {0} ][ {1} ]".format(show_title, season_number))
                                                         self.caller.add_to_errors(
                                                             "Cross-season episode '{0}' - skipping".format(title))
+                                                        fail = True
                                                         break
 
                                                     this_episode_number = record['episode_number'].strip()
@@ -83,6 +85,7 @@ class NickJr(Network):
                                                         self.caller.add_to_errors(
                                                             "Non-sequential episodes ({0}) ({1} - {2}) - skipping".format(
                                                                 full_title, last_episode_number, this_episode_number))
+                                                        fail = True
                                                         break
 
                                                     last_episode_number = this_episode_number
@@ -91,6 +94,7 @@ class NickJr(Network):
                                                     self.caller.add_to_errors(
                                                         "Unable to find information for episode (MULTI) '{0}' of '{1}' - skipping".format(
                                                             title, full_title))
+                                                    fail = True
                                                     break
 
                                             if first_episode_number is not None:
@@ -109,18 +113,20 @@ class NickJr(Network):
                                                     "Unable to find information for episode (SINGLE) '{0}' - skipping".format(
                                                         title))
                                                 continue
+                                        if not fail:
+                                            episode_number = eps[-1]
+                                            season = str(season_number).zfill(2)
+                                            episode_string = 'S{0}E{1}'.format(season, '-E'.join(eps))
+                                            filenames = self.caller.get_filenames(show_title, season_number,
+                                                                                  episode_string)
 
-                                        episode_number = '-'.join(eps)
-                                        season = str(season_number).zfill(2)
-                                        episode_string = 'S{0}E{1}'.format(season, '-E'.join(eps))
-                                        filename = self.caller.get_filename(show_title, season_number, episode_string)
-
-                                        if season_number not in episode_data['episodes']:
-                                            episode_data['episodes'][season_number] = {}
-                                        if episode_number not in episode_data['episodes'][season_number]:
-                                            episode_data['episodes'][season_number][episode_number] = {
-                                                'filename': filename,
-                                                'url': episode_url}
+                                            if season_number not in episode_data['episodes']:
+                                                episode_data['episodes'][season_number] = {}
+                                            if episode_number not in episode_data['episodes'][season_number]:
+                                                episode_data['episodes'][season_number][episode_number] = {
+                                                    'url': episode_url,
+                                                    'filenames': filenames
+                                                }
 
                 more = json_obj['pagination']['moreItems']
                 offset += json_obj['pagination']['count']

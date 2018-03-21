@@ -78,13 +78,15 @@ class CBC(Network):
                                     episode_string = "S{0}E{1}".format(season, episode)
 
                                     episode_url = "{0}{1}".format(base_url, episode_link['href'])
-                                    filename = self.caller.get_filename(show_title, season_number, episode_string)
+                                    filenames = self.caller.get_filenames(show_title, season_number, episode_string)
 
                                     if season_number not in episode_data['episodes']:
                                         episode_data['episodes'][season_number] = {}
                                     if episode_number not in episode_data['episodes'][season_number]:
                                         episode_data['episodes'][season_number][episode_number] = {
-                                            'filename': filename, 'url': episode_url}
+                                            'url': episode_url,
+                                            'filenames': filenames
+                                        }
 
                 self.caller.process_episodes(episode_data)
         return True

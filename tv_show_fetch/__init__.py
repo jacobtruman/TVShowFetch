@@ -25,7 +25,7 @@ class TVShowFetch(object):
         self.title_filter = ""
         self.latest = True
         self.verbose = True
-        self.execute = False
+        self.execute = True
 
         # override any default settings defined in params
         for arg in args:
@@ -78,8 +78,8 @@ class TVShowFetch(object):
                             show_info['headers'] = {
                                 'apiKey': config['apiKey']
                             }
-
-                        getattr(module, method)(show_info)
+                        if show_info['show_title'] == 'The Good Place':
+                            getattr(module, method)(show_info)
                         self.logger.reset_prefix()
             else:
                 self.add_to_errors("Module '{0}' does not have method '{1}'".format(module_name, method))
@@ -130,7 +130,7 @@ class TVShowFetch(object):
                     self.logger.set_prefix("\t[ {0} ][ Season {1} ][ Episode {2} ]".format(show_title, max_season,
                                                                                            max_episode))
                     latest_episode = episodes[max_season][max_episode]
-                    self.process_url(latest_episode['url'], latest_episode['filename'])
+                    self.process_url(latest_episode['url'], latest_episode['filenames'])
                 else:
                     self.logger.info("[ {0} ] Unable to get the latest episode".format(show_title))
             else:
@@ -139,8 +139,6 @@ class TVShowFetch(object):
                 season_numbers.sort(key=int)
                 for season_num in season_numbers:
                     episode_numbers = episodes[season_num].keys()
-                    # TODO: fix issue when multi-episode (ex: 35-36)
-                    # invalid literal for int() with base 10: '35-36'
                     episode_numbers.sort(key=int)
                     self.logger.set_prefix("\t[ {0} ][ Season {1} ]".format(show_title, season_num))
                     self.logger.info("Processing {0} episodes".format(len(episode_numbers)))
@@ -148,7 +146,7 @@ class TVShowFetch(object):
                         episode = episodes[season_num][episode_num]
                         self.logger.set_prefix("\t[ {0} ][ Season {1} ][ Episode {2} ]".format(show_title, season_num,
                                                                                                episode_num))
-                        self.process_url(episode['url'], episode['filename'])
+                        self.process_url(episode['url'], episode['filenames'])
         else:
             self.logger.info("Episode data structure provided is missing required data")
 
@@ -174,43 +172,46 @@ class TVShowFetch(object):
 
         return ret
 
-    def process_url(self, url, filename):
+    def process_url(self, url, filenames):
         """
         Process show url provided
         :param url:
-        :param filename:
+        :param filenames:
         :return: Boolean
         """
-        temp_filename = filename.replace(self.extension, ".temp{}".format(self.extension))
-        ydl_opts = self.ydl_opts.copy()
-        ydl_opts['outtmpl'] = filename
-        ydl_opts['postprocessors'] = [
-            {
-                'key': 'ExecAfterDownload',
-                'exec_cmd': "ffmpeg -n -i {} -c:v libx264 '" + temp_filename + "'"
-            },
-            {
-                'key': 'ExecAfterDownload',
-                'exec_cmd': "if [[ $(ls -l {} | cut -d' ' -f8) -ge $(ls -l '" + temp_filename + "' | cut -d' ' -f8) ]]; then echo 'Moving file'; mv '" + temp_filename + "' {}; else echo 'Removing file'; rm '" + temp_filename + "'; fi"
-            }
-        ]
-        if self.execute:
-            with youtube_dl.YoutubeDL(ydl_opts) as ydl:
-                if ydl.download([url]) == 0:
-                    return True
-                else:
-                    return False
+        if os.path.exists(filenames['final']):
+            self.logger.warning("Episode already downloaded: {0}".format(filenames['final']))
         else:
-            self.logger.debug("NOT EXECUTING:\n\turl: {0}\n\tfilename: {1}".format(url, filename))
+            ydl_opts = self.ydl_opts.copy()
+            ydl_opts['outtmpl'] = filenames['downloading']
+            ydl_opts['postprocessors'] = [
+                {
+                    'key': 'ExecAfterDownload',
+                    'exec_cmd': "ffmpeg -n -i {} -c:v libx264 '" + filenames['final'] + "'"
+                },
+                {
+                    'key': 'ExecAfterDownload',
+                    'exec_cmd': "if [[ $(ls -l {} | cut -d' ' -f8) -ge $(ls -l '" + filenames[
+                        'final'] + "' | cut -d' ' -f8) ]]; then echo 'Moving file'; mv '" + filenames[
+                                    'final'] + "' {}; else echo 'Removing file'; rm '" + filenames['final'] + "'; fi"
+                }
+            ]
+            if self.execute:
+                with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                    if ydl.download([url]) == 0:
+                        return True
+                    else:
+                        return False
+            else:
+                self.logger.debug("NOT EXECUTING:\n\turl: {0}\n\tfilename: {1}".format(url, filenames['downloading']))
 
-    def get_filename(self, show_title, season_number, episode_string):
-        """
-        TODO: fix issue with file always being compressed because it always runs
-        maybe a filename to download as, which will be compressed into the final filename, then deleted
-        will need to check if a file with the final filename exists and not run for those
-        """
-        return "{0}/{1}/Season {2}/{1} - {3}{4}".format(self.base_dir, show_title, season_number, episode_string,
-                                                        self.extension)
+    def get_filenames(self, show_title, season_number, episode_string):
+        base_filename = '{0}/{1}/Season {2}/{1} - {3}'.format(self.base_dir, show_title, season_number, episode_string)
+        files = {
+            'downloading': '{0}.DOWNLOADING{1}'.format(base_filename, self.extension),
+            'final': '{0}{1}'.format(base_filename, self.extension)
+        }
+        return files
 
     def add_to_errors(self, error):
         """

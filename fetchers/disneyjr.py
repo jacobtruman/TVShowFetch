@@ -36,13 +36,15 @@ class DisneyJr(Network):
         response = self.caller.request_data({"url": show_url, 'params': params})
         if response is not False:
             json_obj = json.loads(response.text)
-            if 'tilegroup' in json_obj and 'tiles' in json_obj['tilegroup'] and 'tile' in json_obj['tilegroup']['tiles']:
+            if 'tilegroup' in json_obj and 'tiles' in json_obj['tilegroup'] and 'tile' in json_obj['tilegroup'][
+                'tiles']:
                 tile_count = len(json_obj['tilegroup']['tiles']['tile'])
                 self.caller.logger.info("{0} items found".format(tile_count))
                 if tile_count > 0:
                     for item in json_obj['tilegroup']['tiles']['tile']:
                         if 'accesslevel' in item and int(item['accesslevel']) != 0:
                             continue
+                        fail = False
                         title = utils.sanitize_string(item['video']['title'], sanitize_string)
                         season_number = 0
                         episode_url = "{0}{1}".format(base_url, item['link']['value'])
@@ -63,6 +65,7 @@ class DisneyJr(Network):
                                         self.caller.logger.set_prefix(
                                             "[ {0} ][ {1} ]".format(show_title, season_number))
                                         self.caller.add_to_errors("Cross-season episode '{0}' - skipping".format(title))
+                                        fail = True
                                         break
 
                                     this_episode_number = record['episode_number']
@@ -81,6 +84,7 @@ class DisneyJr(Network):
                                             "Non-sequential episodes ({0}) ({1} - {2}) - skipping".format(full_title,
                                                                                                           last_episode_number,
                                                                                                           this_episode_number))
+                                        fail = True
                                         break
 
                                     last_episode_number = this_episode_number
@@ -89,6 +93,7 @@ class DisneyJr(Network):
                                     self.caller.add_to_errors(
                                         "Unable to find information for episode (MULTI) '{0}' of '{1}' - skipping".format(
                                             title, full_title))
+                                    fail = True
                                     break
 
                             if first_episode_number is not None:
@@ -107,17 +112,19 @@ class DisneyJr(Network):
                                     "Unable to find information for episode (SINGLE) '{0}' - skipping".format(title))
                                 continue
 
-                        episode_number = '-'.join(eps)
-                        season = str(season_number).zfill(2)
-                        episode_string = 'S{0}E{1}'.format(season, '-E'.join(eps))
-                        filename = self.caller.get_filename(show_title, season_number, episode_string)
+                        if not fail:
+                            episode_number = eps[-1]
+                            season = str(season_number).zfill(2)
+                            episode_string = 'S{0}E{1}'.format(season, '-E'.join(eps))
+                            filenames = self.caller.get_filenames(show_title, season_number, episode_string)
 
-                        if season_number not in episode_data['episodes']:
-                            episode_data['episodes'][season_number] = {}
-                        if episode_number not in episode_data['episodes'][season_number]:
-                            episode_data['episodes'][season_number][episode_number] = {
-                                'filename': filename,
-                                'url': episode_url}
+                            if season_number not in episode_data['episodes']:
+                                episode_data['episodes'][season_number] = {}
+                            if episode_number not in episode_data['episodes'][season_number]:
+                                episode_data['episodes'][season_number][episode_number] = {
+                                    'url': episode_url,
+                                    'filenames': filenames
+                                }
 
         self.caller.process_episodes(episode_data)
         return True

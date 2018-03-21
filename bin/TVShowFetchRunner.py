@@ -28,6 +28,11 @@ for config_file in config_files:
     if config_file != base_config_file:
         try:
             config = json.loads(open(config_file, "r").read())
-            fetcher.process_config(config)
+            network = "NBC"
+            if config['network'] == network:
+                fetcher.process_config(config)
+            else:
+                print("Network {0} is not {1} skipping".format(config['network'], network))
+            #fetcher.process_config(config)
         except ValueError, e:
             print(e.message)

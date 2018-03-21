@@ -77,7 +77,6 @@ def sanitize_string(string, to_replace=None):
 
 def get_file_info(file_path):
     """
-    TODO: see if this is needed
     Get infor for file path provided
     :param file_path:
     :return: dictionary of file information
