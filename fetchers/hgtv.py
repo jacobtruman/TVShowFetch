@@ -1,6 +1,8 @@
 from network import Network
-
 from bs4 import BeautifulSoup
+from tv_show_fetch import utils
+
+import json
 
 
 class HGTV(Network):
@@ -15,62 +17,75 @@ class HGTV(Network):
             return False
 
         show_title = show_info['show_title']
+        show_id = show_info['show_id']
+
+        if 'sanitize_string' in show_info:
+            sanitize_string = show_info['sanitize_string']
+        else:
+            sanitize_string = {}
+
         episode_data = {'show': show_title, 'episodes': {}}
-        """base_url = "http://abc.go.com"
-        
-        show_url = "{0}/shows/{1}/episode-guide/".format(base_url, show_info['show_id'])
 
-        response = self.caller.request_data({"url": show_url})
-        if response is not False:
-            episode_data = {'show': show_title, 'episodes': {}}
-            base_dom = BeautifulSoup(response.text, 'html.parser')
-            elements = base_dom.find_all('select')
-            for element in elements:
-                if element['name'] == 'blog-select':
-                    seasons = element.find_all('option')
-                    for season in seasons:
-                        season_url = season['value']
-                        season_number = season_url.split('-')[-1].lstrip('0')
-                        contents = self.caller.request_data({"url": "{0}{1}".format(base_url, season_url)})
-                        season_dom = BeautifulSoup(contents.text, 'html.parser')
-                        season_divs = season_dom.find_all('div')
-                        for season_div in season_divs:
-                            if 'data-sm-type' in season_div.attrs and season_div['data-sm-type'] == 'episode':
-                                links = season_div.find_all('a')
-                                watch = False
-                                for link in links:
-                                    if link.text.lower() == 'watch':
-                                        watch = True
-                                        break
-                                if watch:
-                                    episode_divs = season_div.find_all('div')
-                                    locked = False
-                                    for episode_div in episode_divs:
-                                        if 'class' in episode_div.attrs and 'locked' in episode_div['class']:
-                                            locked = True
-                                            break
+        base_url = 'http://www.hgtv.com'
+        base_url_media = 'http://sniidevices.scrippsnetworks.com'
 
-                                    if not locked:
-                                        spans = season_div.find_all('span')
-                                        for span in spans:
-                                            if 'class' in span.attrs and 'episode-number' in span['class']:
-                                                episode_number = span.text.replace("E", "", ).strip()
-                                                break
+        page = 1
+        max_page = 0
 
-                                        season = season_number.zfill(2)
-                                        episode = episode_number.zfill(2)
-                                        episode_string = "S{0}E{1}".format(season, episode)
+        done = False
+        while not done:
+            show_url = '{0}/shows/{1}/videos/p/{2}'.format(base_url, show_id, page)
 
-                                        filename = self.caller.get_filename(
-                                            show_title, season_number, episode_string)
-                                        episode_url = "{0}{1}".format(base_url,
-                                                                      season_div.attrs['data-url']).strip()
+            response = self.caller.request_data({"url": show_url})
+            if max_page == 0:
+                if response is not False:
+                    base_dom = BeautifulSoup(response.text, 'html.parser')
+                    elements = base_dom.find_all('section')
+                    for element in elements:
+                        if 'class' in element.attrs and 'o-Pagination' in element['class']:
+                            list_items = element.find_all('li')
+                            for list_item in list_items:
+                                if 'class' in list_item.attrs and 'o-Pagination__a-ListItem' in list_item['class']:
+                                    links = list_item.find_all('a')
+                                    for link in links:
+                                        try:
+                                            max_page = int(link.text.strip())
+                                        except ValueError:
+                                            pass
 
-                                        if season_number not in episode_data['episodes']:
-                                            episode_data['episodes'][season_number] = {}
-                                        if episode_number not in episode_data['episodes'][season_number]:
-                                            episode_data['episodes'][season_number][episode_number] = {
-                                                'filename': filename, 'url': episode_url}"""
+            divs = base_dom.find_all('div')
+            for div in divs:
+                if 'data-deferred-module' in div.attrs and div['data-deferred-module'] == 'video':
+                    json_obj = json.loads(div.text)
+                    if 'channels' in json_obj and 'videos' in json_obj['channels'][0]:
+                        for video in json_obj['channels'][0]['videos']:
+                            if video['length'] > 1800:
+                                vid_id = video['nlvid']
+                                vid_sub_id = vid_id[0:4]
+                                title = utils.sanitize_string(video['title'], sanitize_string)
+                                title_lower = title.lower()
+
+                                if title_lower in self.tvdb_episodes_data:
+                                    season_number = self.tvdb_episodes_data[title_lower]['season_number']
+                                    episode_number = self.tvdb_episodes_data[title_lower]['episode_number']
+
+                                    season = str(season_number).zfill(2)
+                                    episode = str(episode_number).zfill(2)
+                                    episode_string = "S{0}E{1}".format(season, episode)
+
+                                    filename = self.caller.get_filename(show_title, season_number, episode_string)
+                                    episode_url = "{0}/{1}/{2}_6.mp4".format(base_url_media, vid_sub_id, vid_id)
+
+                                    if season_number not in episode_data['episodes']:
+                                        episode_data['episodes'][season_number] = {}
+                                    if episode_number not in episode_data['episodes'][season_number]:
+                                        episode_data['episodes'][season_number][episode_number] = {
+                                            'filename': filename,
+                                            'url': episode_url}
+                    break
+            page += 1
+            if page > max_page:
+                done = True
 
         self.caller.process_episodes(episode_data)
         return True

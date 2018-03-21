@@ -65,7 +65,10 @@ class DisneyJr(Network):
                                         self.caller.add_to_errors("Cross-season episode '{0}' - skipping".format(title))
                                         break
 
-                                    this_episode_number = record['episode_number'].strip()
+                                    this_episode_number = record['episode_number']
+
+                                    if type(this_episode_number) is str:
+                                        this_episode_number = this_episode_number.strip()
 
                                     if first_episode_number is None:
                                         first_episode_number = this_episode_number

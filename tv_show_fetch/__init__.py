@@ -139,6 +139,8 @@ class TVShowFetch(object):
                 season_numbers.sort(key=int)
                 for season_num in season_numbers:
                     episode_numbers = episodes[season_num].keys()
+                    # TODO: fix issue when multi-episode (ex: 35-36)
+                    # invalid literal for int() with base 10: '35-36'
                     episode_numbers.sort(key=int)
                     self.logger.set_prefix("\t[ {0} ][ Season {1} ]".format(show_title, season_num))
                     self.logger.info("Processing {0} episodes".format(len(episode_numbers)))
@@ -202,6 +204,11 @@ class TVShowFetch(object):
             self.logger.debug("NOT EXECUTING:\n\turl: {0}\n\tfilename: {1}".format(url, filename))
 
     def get_filename(self, show_title, season_number, episode_string):
+        """
+        TODO: fix issue with file always being compressed because it always runs
+        maybe a filename to download as, which will be compressed into the final filename, then deleted
+        will need to check if a file with the final filename exists and not run for those
+        """
         return "{0}/{1}/Season {2}/{1} - {3}{4}".format(self.base_dir, show_title, season_number, episode_string,
                                                         self.extension)
 
