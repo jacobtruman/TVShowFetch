@@ -22,8 +22,9 @@ class TVShowFetch(object):
 
         self.home_dir = os.path.expanduser("~")
         self.base_dir = '{0}/TVShows'.format(self.home_dir)
-        self.title_filter = ""
-        self.latest = True
+        self.title_filter = None
+        self.latest = None
+        self.all = None
         self.verbose = True
         self.execute = True
 
@@ -60,6 +61,16 @@ class TVShowFetch(object):
         Process the config provided
         :param config:
         """
+        latest = self.latest
+
+        if self.all is None:
+            if self.latest is None and 'latest' in config and config['latest']:
+                self.latest = config['latest']
+            else:
+                self.latest = True
+        elif self.all:
+            self.latest = False
+
         network = config['network'].replace(' ', '')
         module_name = "fetchers.{0}".format(network.lower())
         if module_name in sys.modules:
@@ -78,13 +89,14 @@ class TVShowFetch(object):
                             show_info['headers'] = {
                                 'apiKey': config['apiKey']
                             }
-                        if show_info['show_title'] == 'The Good Place':
-                            getattr(module, method)(show_info)
+                        getattr(module, method)(show_info)
                         self.logger.reset_prefix()
             else:
                 self.add_to_errors("Module '{0}' does not have method '{1}'".format(module_name, method))
         else:
             self.add_to_errors("Module '{0}' does not exist".format(module_name))
+
+        self.latest = latest
 
     def get_active_shows(self, shows):
         """
@@ -96,7 +108,7 @@ class TVShowFetch(object):
         for show_info in shows:
             if 'active' not in show_info or show_info['active'] is False:
                 self.logger.info("{0} is not active - skipping".format(show_info['show_title']))
-            elif self.title_filter is not None and self.title_filter not in show_info['show_title']:
+            elif self.title_filter is not None and self.title_filter not in show_info['show_title'].lower():
                 self.logger.warning("{0} does not match filter provided: '{1}' - skipping".format(
                     show_info['show_title'],
                     self.title_filter))

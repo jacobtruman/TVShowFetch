@@ -2,37 +2,168 @@ import os.path
 import json
 import glob
 import tv_show_fetch
-from tv_show_fetch import thetvdbapi
-import sys
+import argparse
 
 from os.path import expanduser
 
-home_dir = expanduser("~")
 
-base_dir = '{0}/TVShows'.format(home_dir)
-configs_dir = '{0}/tvshow_configs'.format(home_dir)
-config_files = glob.glob("{0}/*.json".format(configs_dir))
+def parse_args():
+    """
+    Parse command line arguments.
+    """
+    parser = argparse.ArgumentParser(
+        description='Run TV Show Fetch functions.',
+    )
 
-base_config = {}
-base_config_file = '{0}/config.json'.format(configs_dir)
-if os.path.exists(base_config_file):
-    try:
-        base_config = json.loads(open(base_config_file, "r").read())
-    except ValueError, e:
-        print(e.message)
+    parser.add_argument(
+        '-e', '--execute',
+        action='store_true',
+        dest='execute',
+        help='Execute downloads (not dry run)',
+    )
 
-fetcher = tv_show_fetch.TVShowFetch({'base_config': base_config})
+    parser.add_argument(
+        '-v', '--verbose',
+        action='store_true',
+        dest='verbose',
+        help='Enable verbose logging',
+    )
 
-for config_file in config_files:
-    # exclude base config (config.json)
-    if config_file != base_config_file:
+    parser.add_argument(
+        '-l', '--latest',
+        action='store_true',
+        dest='latest',
+        help='Get only the latest episode available',
+    )
+
+    parser.add_argument(
+        '-a', '--all',
+        action='store_true',
+        dest='all',
+        help='Get all episodes available',
+    )
+
+    parser.add_argument(
+        '-f', '--filter',
+        default=None,
+        dest='filter',
+        help='Filter by show name',
+    )
+
+    parser.add_argument(
+        '-n', '--network',
+        default=None,
+        dest='network',
+        help='Network for which to run',
+    )
+
+    parser.add_argument(
+        '-c', '--configs_dir',
+        default=None,
+        dest='configs_dir',
+        help='Directory containing the config files',
+    )
+
+    """
+    subparsers = parser.add_subparsers(title='commands')
+
+    # sub parser definition
+    my_sub_parser = subparsers.add_parser(
+        'my-sub-parsers-name',
+        help='Some useful help',
+    )
+    my_sub_parser.add_argument(
+        '-x', '--x_param',
+        default=None,
+        dest='x_param',
+        help='Info for this param',
+    )
+    my_sub_parser.set_defaults(
+        func=my_function,
+    )
+    """
+
+    args = parser.parse_args()
+    return args
+
+
+def main():
+    """
+    Main function.
+    """
+    args = parse_args()
+
+    home_dir = expanduser("~")
+
+    if args.configs_dir is not None:
+        configs_dir = args.configs_dir
+    else:
+        configs_dir = '~/tvshow_configs'
+
+    if configs_dir[:1] == '~':
+        configs_dir = configs_dir.replace('~', home_dir)
+
+    if not os.path.exists(configs_dir):
+        raise ValueError("Configs directory provided does not exist: {0}".format(configs_dir))
+
+    base_config = {}
+    base_config_file = '{0}/config.json'.format(configs_dir)
+    if os.path.exists(base_config_file):
         try:
-            config = json.loads(open(config_file, "r").read())
-            network = "NBC"
-            if config['network'] == network:
-                fetcher.process_config(config)
-            else:
-                print("Network {0} is not {1} skipping".format(config['network'], network))
-            #fetcher.process_config(config)
+            base_config = json.loads(open(base_config_file, "r").read())
         except ValueError, e:
             print(e.message)
+
+    if 'base_dir' in base_config:
+        base_dir = base_config['base_dir']
+    else:
+        base_dir = '~/TVShows'
+
+    if base_dir[:1] == '~':
+        base_dir = base_dir.replace('~', home_dir)
+
+    if not os.path.exists(base_dir):
+        raise ValueError("Base directory provided does not exist: {0}".format(base_dir))
+
+    fetch_args = {'base_config': base_config, 'base_dir': base_dir}
+
+    if args.network is not None:
+        network_filename = '{0}/{1}.json'.format(configs_dir, args.network.lower())
+        if not os.path.exists(network_filename):
+            raise ValueError(
+                "Invalid network provided ({0}) does not exist: {1}".format(args.network, network_filename))
+        else:
+            config_files = [network_filename]
+    else:
+        config_files = glob.glob("{0}/*.json".format(configs_dir))
+
+    if args.filter is not None:
+        fetch_args['title_filter'] = args.filter.lower()
+
+    # only add latest if it is not the default (false)
+    if args.latest:
+        fetch_args['latest'] = args.latest
+    # only add all if it is not the default (false)
+    if args.all:
+        fetch_args['all'] = args.all
+
+    fetch_args['execute'] = args.execute
+    fetch_args['verbose'] = args.verbose
+
+    fetcher = tv_show_fetch.TVShowFetch(fetch_args)
+
+    # run requested action
+    # args.func(args)
+
+    for config_file in config_files:
+        # exclude base config (config.json)
+        if config_file != base_config_file:
+            try:
+                config = json.loads(open(config_file, "r").read())
+                fetcher.process_config(config)
+            except ValueError, e:
+                print(e.message)
+
+
+if __name__ == '__main__':
+    main()
