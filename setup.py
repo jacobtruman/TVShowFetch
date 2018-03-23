@@ -9,6 +9,6 @@ setup(
     url='https://github.com/jacobtruman/TVShowFetch',
     packages=['tv_show_fetch'],
     scripts=['bin/TVShowFetchRunner.py'],
-    install_requires=['requests', 'beautifulsoup4', 'youtube_dl', 'pycrypto'],
+    install_requires=['requests>=2.11.0', 'beautifulsoup4', 'youtube_dl', 'pycrypto'],
     dependency_links=[]
 )
