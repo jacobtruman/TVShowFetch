@@ -3,6 +3,7 @@ import json
 import glob
 import tv_show_fetch
 import argparse
+import sys
 
 from os.path import expanduser
 
@@ -87,6 +88,15 @@ def parse_args():
     return args
 
 
+def get_all_config_files(configs_dir):
+    if configs_dir is not None and os.path.exists(configs_dir):
+        configs = glob.glob("{0}/*.json".format(configs_dir))
+    else:
+        configs = []
+
+    return configs
+
+
 def main():
     """
     Main function.
@@ -127,15 +137,26 @@ def main():
 
     fetch_args = {'base_config': base_config, 'base_dir': base_dir}
 
+    if 'log_dir' in base_config:
+        log_dir = base_config['log_dir']
+        if log_dir[:1] == '~':
+            log_dir = log_dir.replace('~', home_dir)
+        fetch_args['log_dir'] = log_dir
+
     if args.network is not None:
         network_filename = '{0}/{1}.json'.format(configs_dir, args.network.lower())
         if not os.path.exists(network_filename):
-            raise ValueError(
-                "Invalid network provided ({0}) does not exist: {1}".format(args.network, network_filename))
+            print("Invalid network provided ({0}) does not exist: {1}".format(args.network, network_filename))
+            networks = [
+                config_file.replace('{0}/'.format(configs_dir), '').replace('.json', '')
+                for config_file in get_all_config_files(configs_dir)
+            ]
+            print("\tAvailable networks: {0}".format(networks))
+            sys.exit(0)
         else:
             config_files = [network_filename]
     else:
-        config_files = glob.glob("{0}/*.json".format(configs_dir))
+        config_files = get_all_config_files(configs_dir)
 
     if args.filter is not None:
         fetch_args['title_filter'] = args.filter.lower()

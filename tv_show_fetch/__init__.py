@@ -3,6 +3,7 @@ import utils
 import logger
 import thetvdbapi
 import youtube_dl
+import datetime
 import sys
 
 from fetchers import *
@@ -20,11 +21,15 @@ class TVShowFetch(object):
         elif 'tvdb' not in args['base_config']:
             raise ValueError('tvdb not provided in base_config')
 
-        self.home_dir = os.path.expanduser("~")
-        self.base_dir = '{0}/TVShows'.format(self.home_dir)
+        if 'base_dir' not in args:
+            raise ValueError('base_dir not provided')
+
+        self.base_dir = None
+        self.log_dir = None
         self.title_filter = None
         self.latest = None
         self.all = None
+        self.base_config = None
         self.verbose = True
         self.execute = True
 
@@ -32,8 +37,12 @@ class TVShowFetch(object):
         for arg in args:
             self.__dict__[arg] = args[arg]
 
-        self.logger = logger.Logger({'colorize': True})
-        self.thetvdbapi = thetvdbapi.TheTVDBApi(self, args['base_config']['tvdb'])
+        logger_config = {'colorize': True, 'verbose': self.verbose}
+        if self.log_dir is not None:
+            date = datetime.datetime.today().strftime('%Y-%m-%d')
+            logger_config['log_file'] = '{0}/TVShowFetch_{1}.log'.format(self.log_dir, date)
+        self.logger = logger.Logger(logger_config)
+        self.thetvdbapi = thetvdbapi.TheTVDBApi(self, self.base_config['tvdb'])
         self.downloaded = []
         self.extension = ".mp4"
 
@@ -42,7 +51,6 @@ class TVShowFetch(object):
             'verbose': True,
             'nocheckcertificate': True,
             'progress_hooks': [self.ydl_progress_hook],
-            # 'ignoreerrors': True,
         }
 
     def ydl_progress_hook(self, d):

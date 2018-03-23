@@ -1,3 +1,6 @@
+import os
+
+
 class Logger(object):
     STYLES = {
         'BLACK': '\033[0;30m',
@@ -24,6 +27,8 @@ class Logger(object):
     def __init__(self, params=None):
         self.colorize = True
         self.verbose = False
+        self.log_file = None
+        self.log_file_handle = None
 
         # override any default settings defined in params
         if params is not None:
@@ -38,6 +43,17 @@ class Logger(object):
             'ERROR': {'DATA': [], 'STYLE': self.STYLES['RED']},
             'DEBUG': {'DATA': [], 'STYLE': self.STYLES['PINK']}
         }
+
+        if self.log_file is not None:
+            log_dir = os.path.dirname(self.log_file)
+            if os.path.exists(log_dir):
+                self.log_file_handle = open(self.log_file, "a+")
+            else:
+                self.warning("Log dir does not exist: {0}".format(log_dir))
+
+    def __del__(self):
+        if self.log_file_handle is not None:
+            self.log_file_handle.close()
 
     def set_prefix(self, value):
         self.prefix = value
@@ -85,6 +101,10 @@ class Logger(object):
         self.log_types[type]['DATA'].append(msg_string)
 
         if self.colorize:
-            print("{0}{1}{2}".format(self.log_types[type]['STYLE'], msg_string, self.STYLES['RESET']))
-        else:
+            msg_string = "{0}{1}{2}".format(self.log_types[type]['STYLE'], msg_string, self.STYLES['RESET'])
+
+        if self.verbose:
             print(msg_string)
+
+        if self.log_file_handle is not None:
+            self.log_file_handle.write("\n{0}".format(msg_string))
