@@ -207,13 +207,13 @@ class TVShowFetch(object):
             ydl_opts['postprocessors'] = [
                 {
                     'key': 'ExecAfterDownload',
-                    'exec_cmd': "ffmpeg -n -i {} -c:v libx264 '" + filenames['final'] + "'"
+                    'exec_cmd': "ffmpeg -n -i '{0}' -c:v libx264 '{1}'".format(filenames['downloading'],
+                                                                             filenames['final'])
                 },
                 {
                     'key': 'ExecAfterDownload',
-                    'exec_cmd': "if [[ $(ls -l {} | cut -d' ' -f8) -ge $(ls -l '" + filenames[
-                        'final'] + "' | cut -d' ' -f8) ]]; then echo 'Moving file'; mv '" + filenames[
-                                    'final'] + "' {}; else echo 'Removing file'; rm '" + filenames['final'] + "'; fi"
+                    'exec_cmd': "if [[ $(ls -l '{0}' | cut -d' ' -f8) -ge $(ls -l '{1}' | cut -d' ' -f8) ]]; then echo 'Moving file'; mv '{1}' '{0}'; else echo 'Removing file'; rm '{1}'; fi".format(
+                        filenames['final'], filenames['downloading'])
                 }
             ]
             if self.execute:
