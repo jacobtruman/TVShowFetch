@@ -72,7 +72,7 @@ class TVShowFetch(object):
         latest = self.latest
 
         if self.all is None:
-            if self.latest is None and 'latest' in config and config['latest']:
+            if self.latest is None and 'latest' in config:
                 self.latest = config['latest']
             else:
                 self.latest = True
