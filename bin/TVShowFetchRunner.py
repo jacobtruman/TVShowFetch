@@ -97,6 +97,11 @@ def get_all_config_files(configs_dir):
     return configs
 
 
+def fail(msg):
+    print('FAILURE: {0}'.format(msg))
+    sys.exit(0)
+
+
 def main():
     """
     Main function.
@@ -114,7 +119,7 @@ def main():
         configs_dir = configs_dir.replace('~', home_dir)
 
     if not os.path.exists(configs_dir):
-        raise ValueError("Configs directory provided does not exist: {0}".format(configs_dir))
+        fail("Configs directory provided does not exist: {0}".format(configs_dir))
 
     base_config = {}
     base_config_file = '{0}/config.json'.format(configs_dir)
@@ -122,7 +127,7 @@ def main():
         try:
             base_config = json.loads(open(base_config_file, "r").read())
         except ValueError, e:
-            print(e.message)
+            fail(e.message)
 
     if 'base_dir' in base_config:
         base_dir = base_config['base_dir']
@@ -133,7 +138,7 @@ def main():
         base_dir = base_dir.replace('~', home_dir)
 
     if not os.path.exists(base_dir):
-        raise ValueError("Base directory provided does not exist: {0}".format(base_dir))
+        fail("Base directory provided does not exist: {0}".format(base_dir))
 
     fetch_args = {'base_config': base_config, 'base_dir': base_dir}
 
@@ -146,13 +151,13 @@ def main():
     if args.network is not None:
         network_filename = '{0}/{1}.json'.format(configs_dir, args.network.lower())
         if not os.path.exists(network_filename):
-            print("Invalid network provided ({0}) does not exist: {1}".format(args.network, network_filename))
+            fail_msg = "Invalid network provided ({0}); config file does not exist: {1}".format(args.network, network_filename)
             networks = [
                 config_file.replace('{0}/'.format(configs_dir), '').replace('.json', '')
                 for config_file in get_all_config_files(configs_dir)
             ]
-            print("\tAvailable networks: {0}".format(networks))
-            sys.exit(0)
+            fail_msg += "\n\tAvailable networks: {0}".format(networks)
+            fail(fail_msg)
         else:
             config_files = [network_filename]
     else:
@@ -183,7 +188,7 @@ def main():
                 config = json.loads(open(config_file, "r").read())
                 fetcher.process_config(config)
             except ValueError, e:
-                print(e.message)
+                fail(e.message)
 
 
 if __name__ == '__main__':
