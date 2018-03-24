@@ -1,4 +1,5 @@
 import os
+import datetime
 
 
 class Logger(object):
@@ -97,7 +98,9 @@ class Logger(object):
         else:
             prefix = "[ {0} ]".format(type)
 
-        msg_string = "{0} {1}".format(prefix, msg)
+        date = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')
+
+        msg_string = "[ {0} ]\t{1}\t{2}".format(date, prefix, msg)
         self.log_types[type]['DATA'].append(msg_string)
 
         if self.colorize:
