@@ -207,6 +207,8 @@ def main():
             except ValueError, e:
                 fail(e.message)
 
+    fetcher.print_summary()
+
 
 if __name__ == '__main__':
     main()

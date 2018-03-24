@@ -67,29 +67,29 @@ class Logger(object):
 
     def get_logs_by_type(self, type):
         if type in self.log_types:
-            return self.log_types[type]
+            return self.log_types[type]['DATA']
         else:
             print("Invalid log type: {0}".format(type))
             return None
 
     def info(self, msg):
-        self._add_to_log(msg, "INFO")
+        self._format_and_add_to_log(msg, "INFO")
 
     def success(self, msg):
-        self._add_to_log(msg, "SUCCESS")
+        self._format_and_add_to_log(msg, "SUCCESS")
 
     def debug(self, msg):
-        self._add_to_log(msg, "DEBUG")
+        self._format_and_add_to_log(msg, "DEBUG")
 
     def warning(self, msg):
-        self._add_to_log(msg, "WARNING")
+        self._format_and_add_to_log(msg, "WARNING")
 
     def error(self, msg):
-        self._add_to_log(msg, "ERROR")
+        self._format_and_add_to_log(msg, "ERROR")
 
-    def _add_to_log(self, msg, type="INFO"):
+    def _format_and_add_to_log(self, msg, type="INFO"):
         if type not in self.log_types:
-            self._add_to_log("Invalid log type: {0}".format(type), "WARNING")
+            self._format_and_add_to_log("Invalid log type: {0}".format(type), "WARNING")
             type = "INFO"
 
         prefix = self.get_prefix()
@@ -101,13 +101,17 @@ class Logger(object):
         date = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')
 
         msg_string = "[ {0} ]\t{1}\t{2}".format(date, prefix, msg)
-        self.log_types[type]['DATA'].append(msg_string)
 
         if self.colorize:
             msg_string = "{0}{1}{2}".format(self.log_types[type]['STYLE'], msg_string, self.STYLES['RESET'])
 
+        self.log_types[type]['DATA'].append(msg_string)
+
+        self.add_to_log(msg_string)
+
+    def add_to_log(self, msg):
         if self.verbose:
-            print(msg_string)
+            print(msg)
 
         if self.log_file_handle is not None:
-            self.log_file_handle.write("\n{0}".format(msg_string))
+            self.log_file_handle.write("\n{0}".format(msg))

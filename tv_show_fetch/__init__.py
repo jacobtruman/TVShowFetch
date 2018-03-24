@@ -228,7 +228,7 @@ class TVShowFetch(object):
     def get_filenames(self, show_title, season_number, episode_string):
         base_filename = '{0}/{1}/Season {2}/{1} - {3}'.format(self.base_dir, show_title, season_number, episode_string)
         files = {
-            'downloading': '{0}.DOWNLOADING{1}'.format(base_filename, self.extension),
+            'downloading': '{0}.DOWNLOAD{1}'.format(base_filename, self.extension),
             'final': '{0}{1}'.format(base_filename, self.extension)
         }
         return files
@@ -252,15 +252,15 @@ class TVShowFetch(object):
         """
         Print a summary of the process execution
         """
-        print("\n### Execution Summary ###")
+        self.logger.add_to_log("### Execution Summary ###")
 
         if len(self.downloaded) > 0:
-            print("\t[+] {0} episodes downloaded".format(len(self.downloaded)))
+            self.logger.add_to_log("\t[+] {0} episodes downloaded".format(len(self.downloaded)))
             for downloaded in self.downloaded:
                 print("\t\t{0}".format(downloaded))
 
         errors = self.logger.get_logs_by_type("ERROR")
         if len(errors) > 0:
-            print("\t[-] {0} errors encountered during execution".format(len(errors)))
+            self.logger.add_to_log("\t[-] {0} errors encountered during execution".format(len(errors)))
             for error in errors:
-                print("\t\t{0}".format(error))
+                self.logger.add_to_log("\t\t{0}".format(error))
