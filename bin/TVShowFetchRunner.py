@@ -116,10 +116,10 @@ def main():
     # check if process is already running
     filename, file_extension = os.path.splitext(os.path.basename(__file__))
     lock_file = '/tmp/{0}.lock'.format(filename)
-    atexit.register(cleanup, args={'lock_file': lock_file})
     if os.path.exists(lock_file):
         fail('Lock file exists: {0}'.format(lock_file))
     else:
+        atexit.register(cleanup, args={'lock_file': lock_file})
         open(lock_file, 'w+')
         print('Lock acquired: {0}'.format(lock_file))
 
