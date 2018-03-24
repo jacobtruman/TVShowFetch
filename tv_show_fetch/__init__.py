@@ -252,7 +252,7 @@ class TVShowFetch(object):
         """
         Print a summary of the process execution
         """
-        self.logger.add_to_log("### Execution Summary ###")
+        self.logger.add_to_log("\n### Execution Summary ###")
 
         if len(self.downloaded) > 0:
             self.logger.add_to_log("\t[+] {0} episodes downloaded".format(len(self.downloaded)))

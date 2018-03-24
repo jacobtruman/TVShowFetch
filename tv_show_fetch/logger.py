@@ -114,4 +114,4 @@ class Logger(object):
             print(msg)
 
         if self.log_file_handle is not None:
-            self.log_file_handle.write("\n{0}".format(msg))
+            self.log_file_handle.write("{0}\n".format(msg))

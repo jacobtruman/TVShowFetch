@@ -106,23 +106,17 @@ def fail(msg):
 def cleanup(args):
     if 'lock_file' in args:
         os.remove(args['lock_file'])
-        print('Lock file removed: {0}'.format(args['lock_file']))
+        msg = 'Lock file removed: {0}'.format(args['lock_file'])
+        if 'logger' in args:
+            args['logger'].info(msg)
+        else:
+            print(msg)
 
 
 def main():
     """
     Main function.
     """
-    # check if process is already running
-    filename, file_extension = os.path.splitext(os.path.basename(__file__))
-    lock_file = '/tmp/{0}.lock'.format(filename)
-    if os.path.exists(lock_file):
-        fail('Lock file exists: {0}'.format(lock_file))
-    else:
-        atexit.register(cleanup, args={'lock_file': lock_file})
-        open(lock_file, 'w+')
-        print('Lock acquired: {0}'.format(lock_file))
-
     args = parse_args()
 
     home_dir = expanduser("~")
@@ -194,6 +188,16 @@ def main():
     fetch_args['verbose'] = args.verbose
 
     fetcher = tv_show_fetch.TVShowFetch(fetch_args)
+
+    # check if process is already running
+    filename, file_extension = os.path.splitext(os.path.basename(__file__))
+    lock_file = '/tmp/{0}.lock'.format(filename)
+    if os.path.exists(lock_file):
+        fail('Lock file exists: {0}'.format(lock_file))
+    else:
+        atexit.register(cleanup, args={'lock_file': lock_file, 'logger': fetcher.logger})
+        open(lock_file, 'w+')
+        fetcher.logger.info('Lock acquired: {0}'.format(lock_file))
 
     # run requested action
     # args.func(args)
