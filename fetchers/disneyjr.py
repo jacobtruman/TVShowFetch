@@ -22,8 +22,6 @@ class DisneyJr(Network):
         else:
             sanitize_string = {}
 
-        episode_data = {'show': show_title, 'episodes': {}}
-
         api_base_url = 'https://api.presentation.abc.go.com'
         base_url = 'http://watchdisneyjunior.go.com'
 
@@ -36,6 +34,7 @@ class DisneyJr(Network):
         response = self.caller.request_data({"url": show_url, 'params': params})
         if response is not False:
             json_obj = json.loads(response.text)
+            episode_data = {'show': show_title, 'episodes': {}}
             if 'tilegroup' in json_obj and 'tiles' in json_obj['tilegroup'] and 'tile' in json_obj['tilegroup'][
                 'tiles']:
                 tile_count = len(json_obj['tilegroup']['tiles']['tile'])
@@ -126,5 +125,7 @@ class DisneyJr(Network):
                                     'filenames': filenames
                                 }
 
-        self.caller.process_episodes(episode_data)
+            self.caller.process_episodes(episode_data)
+        else:
+            self.caller.logger.error("Request returned False: {0}".format(show_url))
         return True

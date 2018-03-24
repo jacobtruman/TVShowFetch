@@ -73,4 +73,6 @@ class ABC(Network):
                                             }
 
             self.caller.process_episodes(episode_data)
+        else:
+            self.caller.logger.error("Request returned False: {0}".format(show_url))
         return True

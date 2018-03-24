@@ -17,14 +17,13 @@ class CW(Network):
         show_title = show_info['show_title']
         show_id = show_info['show_id']
 
-        episode_data = {'show': show_title, 'episodes': {}}
-
         date = datetime.datetime.today().strftime('%Y%m%d')
         base_url = "http://www.cwtv.com/shows/{0}/?play=".format(show_id)
         show_url = "http://images.cwtv.com/data/r_{0}000/videos/{1}/data.js".format(date, show_id)
 
         response = self.caller.request_data({"url": show_url})
         if response is not False:
+            episode_data = {'show': show_title, 'episodes': {}}
             start = response.text.find("{")
             end = response.text.find(";", start, len(response.text))
 

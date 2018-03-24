@@ -26,6 +26,8 @@ class NBC(Network):
         loop = True
         page_num = 0
 
+        episode_data = {'show': show_title, 'episodes': {}}
+
         while (loop):
             page_num += 1
             params = {}
@@ -54,8 +56,6 @@ class NBC(Network):
             response = self.caller.request_data({"url": show_url})
             if response is not False:
                 json_obj = json.loads(response.text)
-
-                episode_data = {'show': show_title, 'episodes': {}}
 
                 now = int(time.time())
                 if 'data' in json_obj:
@@ -95,5 +95,5 @@ class NBC(Network):
                                     'filenames': filenames
                                 }
 
-                self.caller.process_episodes(episode_data)
+        self.caller.process_episodes(episode_data)
         return True

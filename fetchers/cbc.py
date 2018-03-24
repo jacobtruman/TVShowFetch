@@ -21,6 +21,7 @@ class CBC(Network):
         response = self.caller.request_data({"url": show_url})
         if response is not False:
             seasons = {}
+            episode_data = {'show': show_title, 'episodes': {}}
             base_dom = BeautifulSoup(response.text, 'html.parser')
             elements = base_dom.find_all('div')
             for element in elements:
@@ -58,7 +59,6 @@ class CBC(Network):
                                 if episode_number not in episode_pages:
                                     episode_pages[episode_number] = episode_page_url
 
-                episode_data = {'show': show_title, 'episodes': {}}
                 episode_numbers = episode_pages.keys()
                 if self.caller.latest:
                     episode_numbers = [max(episode_numbers, key=int)]
@@ -88,5 +88,7 @@ class CBC(Network):
                                             'filenames': filenames
                                         }
 
-                self.caller.process_episodes(episode_data)
+            self.caller.process_episodes(episode_data)
+        else:
+            self.caller.logger.error("Request returned False: {0}".format(show_url))
         return True

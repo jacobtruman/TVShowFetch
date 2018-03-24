@@ -16,7 +16,6 @@ class FOX(Network):
         show_title = show_info['show_title']
         show_id = show_info['show_id']
 
-        episode_data = {'show': show_title, 'episodes': {}}
 
         base_url = "https://www.fox.com/watch"
         show_url = "https://api.fox.com/fbc-content/v1_4/screens/series-detail/{0}/".format(show_id)
@@ -24,6 +23,7 @@ class FOX(Network):
         response = self.caller.request_data({"url": show_url, 'headers': show_info['headers']})
         if response is not False:
             json_obj = json.loads(response.text)
+            episode_data = {'show': show_title, 'episodes': {}}
             seasons = json_obj['panels']['member'][1]['items']['member']
             for season in seasons:
                 if 'episodes' in season:
@@ -50,5 +50,7 @@ class FOX(Network):
                                         'filenames': filenames
                                     }
 
-        self.caller.process_episodes(episode_data)
+            self.caller.process_episodes(episode_data)
+        else:
+            self.caller.logger.error("Request returned False: {0}".format(show_url))
         return True
