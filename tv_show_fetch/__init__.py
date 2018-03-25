@@ -62,7 +62,7 @@ class TVShowFetch(object):
         # if d['status'] == 'downloading':
         # print('ETA: {0}\tTime Elapsed: {1}\tSpeed (bytes/second): {2}'.format(d['eta'], d['elapsed'], d['speed']))
         if d['status'] == 'finished':
-            print('Done downloading, now compressing...')
+            self.logger.info('Done downloading, now compressing...')
 
     def process_config(self, config):
         """
@@ -218,9 +218,12 @@ class TVShowFetch(object):
             ]
             if self.execute:
                 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
+                    self.logger.info("Downloading episode: {0}".format(filenames['final']))
                     if ydl.download([url]) == 0:
+                        self.add_to_downloaded(filenames['final'])
                         return True
                     else:
+                        self.logger.error("There was a problem downloading episode: {0} -> {1}".format(url, filenames['final']))
                         return False
             else:
                 self.logger.debug("NOT EXECUTING:\n\turl: {0}\n\tfilename: {1}".format(url, filenames['downloading']))
@@ -247,6 +250,7 @@ class TVShowFetch(object):
         :param filename:
         """
         self.downloaded.append(filename)
+        self.logger.success("Downloaded episode: {0}".format(filename))
 
     def print_summary(self):
         """
