@@ -59,11 +59,11 @@ def sanitize_string(string, to_replace=None):
     to_replace[','] = ""
 
     # strip off leading "the "
-    if string.startswith("the "):
+    if string.lower().startswith("the "):
         string = string[4:None]
 
     # strip off leading "a "
-    if string.startswith("a "):
+    if string.lower().startswith("a "):
         string = string[2:None]
 
     # replace custom replacements
