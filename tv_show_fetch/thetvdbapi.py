@@ -86,12 +86,15 @@ class TheTVDBApi(object):
 
         return episodes
 
-    def get_series_episodes_by_name(self, series_id):
+    def get_series_episodes_by_name(self, series_id, sanitize_string):
+        if sanitize_string is None:
+            sanitize_string = {}
+        sanitize_string['.'] = ''
         episodes_by_name = {}
         episodes = self.get_series_episodes(series_id)
         for episode in episodes:
             if episode['episodeName'] is not None:
-                episode_name = utils.sanitize_string(episode['episodeName'], {'.': ''})
+                episode_name = utils.sanitize_string(episode['episodeName'], sanitize_string)
                 if episode_name not in episodes_by_name:
                     episodes_by_name[episode_name] = {'season_number': episode['airedSeason'],
                                                       'episode_number': episode['airedEpisodeNumber']}

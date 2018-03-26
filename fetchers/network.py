@@ -12,7 +12,12 @@ class Network(object):
         :return:
         """
         if 'thetvdb_id' in show_info:
-            self.tvdb_episodes_data = self.get_tvdb_episodes_data({'thetvdb_id': show_info['thetvdb_id']})
+            if 'sanitize_string' in show_info:
+                sanitize_string = show_info['sanitize_string']
+            else:
+                sanitize_string = {}
+            self.tvdb_episodes_data = self.get_tvdb_episodes_data(
+                {'thetvdb_id': show_info['thetvdb_id'], "sanitize_string": sanitize_string})
             if self.tvdb_episodes_data is None:
                 return False
         return True
@@ -27,8 +32,13 @@ class Network(object):
                 if 'id' in series_info:
                     thetvdb_id = series_info['id']
 
+            if 'sanitize_string' in args:
+                sanitize_string = args['sanitize_string']
+            else:
+                sanitize_string = {}
+
         if thetvdb_id is None:
             self.caller.logger.warning("Unable to get series episodes from thetvdb")
             return None
         else:
-            return self.caller.thetvdbapi.get_series_episodes_by_name(thetvdb_id)
+            return self.caller.thetvdbapi.get_series_episodes_by_name(thetvdb_id, sanitize_string)
