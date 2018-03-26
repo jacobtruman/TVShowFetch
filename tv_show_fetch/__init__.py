@@ -261,7 +261,7 @@ class TVShowFetch(object):
         if len(self.downloaded) > 0:
             self.logger.add_to_log("\t[+] {0} episodes downloaded".format(len(self.downloaded)))
             for downloaded in self.downloaded:
-                print("\t\t{0}".format(downloaded))
+                self.logger.add_to_log("\t\t{0}".format(downloaded))
 
         errors = self.logger.get_logs_by_type("ERROR")
         if len(errors) > 0:
