@@ -58,6 +58,12 @@ def sanitize_string(string, to_replace=None):
     to_replace['!'] = ""
     to_replace[','] = ""
 
+    # replace custom replacements
+    for search, replace in to_replace.iteritems():
+        search = search.lower()
+        if search in string:
+            string = string.replace(search, replace.lower())
+
     # strip off leading "the "
     if string.lower().startswith("the "):
         string = string[4:None]
@@ -65,12 +71,6 @@ def sanitize_string(string, to_replace=None):
     # strip off leading "a "
     if string.lower().startswith("a "):
         string = string[2:None]
-
-    # replace custom replacements
-    for search, replace in to_replace.iteritems():
-        search = search.lower()
-        if search in string:
-            string = string.replace(search, replace.lower())
 
     return string.strip()
 
