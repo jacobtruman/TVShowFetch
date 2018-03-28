@@ -35,9 +35,8 @@ class FOX(Network):
                         for episode_obj in seasons_json_obj['member']:
                             if not episode_obj['requiresAuth'] and episode_obj['isFullEpisode']:
                                 episode_number = str(episode_obj['episodeNumber'])
-                                season = season_number.zfill(2)
-                                episode = episode_number.zfill(2)
-                                episode_string = "S{0}E{1}".format(season, episode)
+
+                                episode_string = self.caller.get_episode_string(season_number, [episode_number])
 
                                 filenames = self.caller.get_filenames(show_title, season_number, episode_string)
                                 episode_url = "{0}/{1}/".format(base_url, episode_obj['id'])

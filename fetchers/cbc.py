@@ -73,9 +73,7 @@ class CBC(Network):
                             if 'class' in div.attrs and 'responsive-container' in div['class']:
                                 episode_links = div.find_all('a')
                                 for episode_link in episode_links:
-                                    season = season_number.zfill(2)
-                                    episode = str(episode_number).zfill(2)
-                                    episode_string = "S{0}E{1}".format(season, episode)
+                                    episode_string = self.caller.get_episode_string(season_number, [episode_number])
 
                                     episode_url = "{0}{1}".format(base_url, episode_link['href'])
                                     filenames = self.caller.get_filenames(show_title, season_number, episode_string)

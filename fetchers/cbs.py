@@ -37,16 +37,15 @@ class CBS(Network):
             if 'result' in json_obj and 'data' in json_obj['result']:
                 for record in json_obj['result']['data']:
                     skip = False
+                    episode_numbers = []
                     season_number = record['season_number']
                     episode_number = record['episode_number']
                     episode_url = "{0}{1}".format(base_url, record['url'])
 
                     if ',' in episode_number:
-                        episode_numbers = episode_number.split(",")
-                        eps = []
                         first_episode_number = None
                         last_episode_number = None
-                        for episode_number in episode_numbers:
+                        for episode_number in episode_number.split(","):
                             this_episode_number = episode_number.trim()
                             if first_episode_number is None:
                                 first_episode_number = this_episode_number
@@ -54,9 +53,32 @@ class CBS(Network):
                             if last_episode_number is not None and (
                                     this_episode_number - last_episode_number) != 1:
                                 self.caller.logger.set_prefix("[ {0} ][ {1} ]".format(show_title, season_number))
-                                self.caller.add_to_errors(
+                                self.caller.logger.warning(
                                     "Non-sequential episodes ({0} - {1}) - skipping".format(last_episode_number,
                                                                                             this_episode_number))
+
+                                last_filenames = self.caller.get_filenames(show_title, season_number,
+                                                                           self.caller.get_episode_string(
+                                                                               season_number,
+                                                                               [last_episode_number]))
+
+                                this_filenames = self.caller.get_filenames(show_title, season_number,
+                                                                           self.caller.get_episode_string(
+                                                                               season_number,
+                                                                               [this_episode_number]))
+                                if not self.caller.file_exists(last_filenames['final']):
+                                    self.caller.logger.error(
+                                        "First non-sequential episode ({0}) missing - {1}".format(
+                                            last_episode_number,
+                                            episode_url))
+                                if not self.caller.file_exists(this_filenames['final']):
+                                    self.caller.logger.error(
+                                        "Second non-sequential episode ({0}) missing - {1}".format(
+                                            this_episode_number,
+                                            episode_url))
+
+                                self.caller.logger.reset_prefix()
+
                                 skip = True
                                 break
 
@@ -65,15 +87,12 @@ class CBS(Network):
                         if skip:
                             continue
 
-                        eps.append(first_episode_number.zfill(2))
-                        eps.append(last_episode_number.zfill(2))
-
-                        episode_string = '-'.join(eps)
+                        episode_numbers.append(first_episode_number)
+                        episode_numbers.append(last_episode_number)
                     else:
-                        season = season_number.zfill(2)
-                        episode = episode_number.zfill(2)
-                        episode_string = "S{0}E{1}".format(season, episode)
+                        episode_numbers.append(episode_number)
 
+                    episode_string = self.caller.get_episode_string(season_number, episode_numbers)
                     filenames = self.caller.get_filenames(show_title, season_number, episode_string)
 
                     if season_number not in episode_data['episodes']:

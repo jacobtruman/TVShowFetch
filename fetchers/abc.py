@@ -55,14 +55,10 @@ class ABC(Network):
                                                 episode_number = span.text.replace("E", "", ).strip()
                                                 break
 
-                                        season = season_number.zfill(2)
-                                        episode = episode_number.zfill(2)
-                                        episode_string = "S{0}E{1}".format(season, episode)
+                                        episode_string = self.caller.get_episode_string(season_number, [episode_number])
 
-                                        filenames = self.caller.get_filenames(
-                                            show_title, season_number, episode_string)
-                                        episode_url = "{0}{1}".format(base_url,
-                                                                      season_div.attrs['data-url']).strip()
+                                        filenames = self.caller.get_filenames(show_title, season_number, episode_string)
+                                        episode_url = "{0}{1}".format(base_url, season_div.attrs['data-url']).strip()
 
                                         if season_number not in episode_data['episodes']:
                                             episode_data['episodes'][season_number] = {}

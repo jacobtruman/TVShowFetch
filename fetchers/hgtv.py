@@ -69,9 +69,7 @@ class HGTV(Network):
                                     season_number = self.tvdb_episodes_data[title_lower]['season_number']
                                     episode_number = self.tvdb_episodes_data[title_lower]['episode_number']
 
-                                    season = str(season_number).zfill(2)
-                                    episode = str(episode_number).zfill(2)
-                                    episode_string = "S{0}E{1}".format(season, episode)
+                                    episode_string = self.caller.get_episode_string(season_number, [episode_number])
 
                                     filenames = self.caller.get_filenames(show_title, season_number, episode_string)
                                     episode_url = "{0}/{1}/{2}_6.mp4".format(base_url_media, vid_sub_id, vid_id)
