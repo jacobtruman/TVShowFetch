@@ -199,9 +199,7 @@ class TVShowFetch(object):
         :param filenames:
         :return: Boolean
         """
-        if os.path.exists(filenames['final']):
-            self.logger.warning("Episode already downloaded: {0}".format(filenames['final']))
-        else:
+        if not self.file_exists(filenames['final']):
             ydl_opts = self.ydl_opts.copy()
             ydl_opts['outtmpl'] = filenames['downloading']
             ydl_opts['postprocessors'] = [
@@ -228,6 +226,14 @@ class TVShowFetch(object):
             else:
                 self.logger.debug("NOT EXECUTING:\n\turl: {0}\n\tfilename: {1}".format(url, filenames['downloading']))
 
+    def get_episode_string(self, season_number, episode_numbers):
+        season = str(season_number).zfill(2)
+        episodes = []
+        for episode_number in episode_numbers:
+            episodes.append(str(episode_number).zfill(2))
+
+        return 'S{0}E{1}'.format(season, '-E'.join(episodes))
+
     def get_filenames(self, show_title, season_number, episode_string):
         base_filename = '{0}/{1}/Season {2}/{1} - {3}'.format(self.base_dir, show_title, season_number, episode_string)
         files = {
@@ -235,6 +241,13 @@ class TVShowFetch(object):
             'final': '{0}{1}'.format(base_filename, self.extension)
         }
         return files
+
+    def file_exists(self, filename):
+        if os.path.exists(filename):
+            self.logger.warning("Episode already downloaded: {0}".format(filename))
+            return True
+        else:
+            return False
 
     def add_to_errors(self, error):
         """

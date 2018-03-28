@@ -52,7 +52,7 @@ class NickJr(Network):
                                         title = utils.sanitize_string(data['title'], sanitize_string)
                                         season_number = 0
                                         episode_url = "{0}{1}".format(base_url, data['url'])
-                                        eps = []
+                                        episode_numbers = []
                                         if '/' in title:
                                             full_title = title
                                             titles = title.split('/')
@@ -77,14 +77,44 @@ class NickJr(Network):
 
                                                     if first_episode_number is None:
                                                         first_episode_number = this_episode_number
+                                                        first_episode_title = title
 
                                                     if last_episode_number is not None and (
                                                             this_episode_number - last_episode_number) != 1:
                                                         self.caller.logger.set_prefix(
                                                             "[ {0} ][ {1} ]".format(show_title, season_number))
-                                                        self.caller.add_to_errors(
+                                                        self.caller.logger.warning(
                                                             "Non-sequential episodes ({0}) ({1} - {2}) - skipping".format(
-                                                                full_title, last_episode_number, this_episode_number))
+                                                                full_title,
+                                                                last_episode_number,
+                                                                this_episode_number))
+                                                        last_filenames = self.caller.get_filenames(show_title,
+                                                                                                   season_number,
+                                                                                                   self.caller.get_episode_string(
+                                                                                                       season_number,
+                                                                                                       [
+                                                                                                           last_episode_number]))
+
+                                                        this_filenames = self.caller.get_filenames(show_title,
+                                                                                                   season_number,
+                                                                                                   self.caller.get_episode_string(
+                                                                                                       season_number,
+                                                                                                       [
+                                                                                                           this_episode_number]))
+                                                        if not self.caller.file_exists(last_filenames['final']):
+                                                            self.caller.logger.error(
+                                                                "First non-sequential episode ({0}) ({1}) missing - {2}".format(
+                                                                    first_episode_title,
+                                                                    last_episode_number,
+                                                                    episode_url))
+                                                        if not self.caller.file_exists(this_filenames['final']):
+                                                            self.caller.logger.error(
+                                                                "Second non-sequential episode ({0}) ({1}) missing - {2}".format(
+                                                                    title,
+                                                                    this_episode_number,
+                                                                    episode_url))
+
+                                                        self.caller.logger.reset_prefix()
                                                         fail = True
                                                         break
 
@@ -98,15 +128,15 @@ class NickJr(Network):
                                                     break
 
                                             if first_episode_number is not None:
-                                                eps.append(str(first_episode_number).zfill(2))
+                                                episode_numbers.append(first_episode_number)
                                             if last_episode_number is not None:
-                                                eps.append(str(last_episode_number).zfill(2))
+                                                episode_numbers.append(last_episode_number)
                                         else:
                                             title_lower = title.lower()
                                             if title_lower in self.tvdb_episodes_data:
                                                 record = self.tvdb_episodes_data[title_lower]
                                                 season_number = record['season_number']
-                                                eps.append(str(record['episode_number']).zfill(2))
+                                                episode_numbers.append(record['episode_number'])
                                             else:
                                                 self.caller.logger.set_prefix("[ {0} ]".format(show_title))
                                                 self.caller.add_to_errors(
@@ -114,9 +144,9 @@ class NickJr(Network):
                                                         title))
                                                 continue
                                         if not fail:
-                                            episode_number = eps[-1]
-                                            season = str(season_number).zfill(2)
-                                            episode_string = 'S{0}E{1}'.format(season, '-E'.join(eps))
+                                            episode_number = episode_numbers[-1]
+                                            episode_string = self.caller.get_episode_string(season_number,
+                                                                                            episode_numbers)
                                             filenames = self.caller.get_filenames(show_title, season_number,
                                                                                   episode_string)
 
