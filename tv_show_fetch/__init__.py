@@ -220,12 +220,15 @@ class TVShowFetch(object):
             if self.execute:
                 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                     self.logger.info("Downloading episode: {0}".format(filenames['final']))
-                    if ydl.download([url]) == 0:
-                        self.add_to_downloaded(filenames['final'])
-                        return True
-                    else:
-                        self.logger.error("There was a problem downloading episode: {0} -> {1}".format(url, filenames['final']))
-                        return False
+                    try:
+                        if ydl.download([url]) == 0:
+                            self.add_to_downloaded(filenames['final'])
+                            return True
+                        else:
+                            self.logger.error("There was a problem downloading episode: {0} -> {1}".format(url, filenames['final']))
+                            return False
+                    except ValueError, e:
+                        self.logger.error(e.message)
             else:
                 self.logger.debug("NOT EXECUTING:\n\turl: {0}\n\tfilename: {1}".format(url, filenames['downloading']))
 
