@@ -97,7 +97,10 @@ class TVShowFetch(object):
                             show_info['headers'] = {
                                 'apiKey': config['apiKey']
                             }
-                        getattr(module, method)(show_info)
+                        try:
+                            getattr(module, method)(show_info)
+                        except ValueError, e:
+                            self.logger.error(e.message)
                         self.logger.reset_prefix()
             else:
                 self.add_to_errors("Module '{0}' does not have method '{1}'".format(module_name, method))
