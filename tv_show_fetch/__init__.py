@@ -1,10 +1,10 @@
 import os.path
 import utils
-import logger
 import thetvdbapi
 import youtube_dl
 import datetime
 import sys
+import trulogger
 
 from fetchers import *
 
@@ -41,7 +41,7 @@ class TVShowFetch(object):
         if self.log_dir is not None:
             date = datetime.datetime.today().strftime('%Y-%m-%d')
             logger_config['log_file'] = '{0}/TVShowFetch_{1}.log'.format(self.log_dir, date)
-        self.logger = logger.Logger(logger_config)
+        self.logger = trulogger.TruLogger(logger_config)
         self.thetvdbapi = thetvdbapi.TheTVDBApi(self, self.base_config['tvdb'])
         self.downloaded = []
         self.extension = ".mp4"

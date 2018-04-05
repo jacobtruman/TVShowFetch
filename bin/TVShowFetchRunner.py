@@ -209,7 +209,7 @@ def main():
                 config = json.loads(open(config_file, "r").read())
                 fetcher.process_config(config)
             except ValueError, e:
-                fail(e.message)
+                fetcher.logger.error(e.message)
 
     fetcher.print_summary()
 
