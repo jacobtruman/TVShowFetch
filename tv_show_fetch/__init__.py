@@ -99,7 +99,7 @@ class TVShowFetch(object):
                             }
                         try:
                             getattr(module, method)(show_info)
-                        except ValueError, e:
+                        except Exception as e:
                             self.logger.error(e.message)
                         self.logger.reset_prefix()
             else:
@@ -221,14 +221,14 @@ class TVShowFetch(object):
                 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                     self.logger.info("Downloading episode: {0}".format(filenames['final']))
                     try:
-                        if ydl.download([url]) == 0:
-                            self.add_to_downloaded(filenames['final'])
-                            return True
-                        else:
-                            self.logger.error("There was a problem downloading episode: {0} -> {1}".format(url, filenames['final']))
-                            return False
-                    except ValueError, e:
+                        ydl.download([url])
+                        self.add_to_downloaded(filenames['final'])
+                        return True
+                    except Exception as e:
+                        self.logger.error(
+                            "There was a problem downloading episode: {0} -> {1}".format(url, filenames['final']))
                         self.logger.error(e.message)
+                        return False
             else:
                 self.logger.debug("NOT EXECUTING:\n\turl: {0}\n\tfilename: {1}".format(url, filenames['downloading']))
 

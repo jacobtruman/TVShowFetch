@@ -210,6 +210,7 @@ def main():
                 fetcher.process_config(config)
             except ValueError, e:
                 fetcher.logger.error(e.message)
+                pass
 
     fetcher.print_summary()
 
