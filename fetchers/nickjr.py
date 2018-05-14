@@ -139,14 +139,14 @@ class NickJr(Network):
                                                 get_sequential_episodes = False
                                                 if not self.caller.file_exists(first_filenames['final']):
                                                     get_sequential_episodes = True
-                                                    self.caller.logger.error(
+                                                    self.caller.logger.warning(
                                                         "First sequential episode ({0}) missing - {1}".format(
                                                             first_episode_title,
                                                             episode_url))
 
                                                 if not self.caller.file_exists(last_filenames['final']):
                                                     get_sequential_episodes = True
-                                                    self.caller.logger.error(
+                                                    self.caller.logger.warning(
                                                         "Last sequential episode ({0}) missing - {1}".format(
                                                             title,
                                                             episode_url))
