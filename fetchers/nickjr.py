@@ -127,10 +127,33 @@ class NickJr(Network):
                                                     fail = True
                                                     break
 
-                                            if first_episode_number is not None:
-                                                episode_numbers.append(first_episode_number)
-                                            if last_episode_number is not None:
-                                                episode_numbers.append(last_episode_number)
+                                            if first_episode_number is not None and last_episode_number is not None:
+                                                first_filenames = self.caller.get_filenames(show_title, season_number,
+                                                                                            self.caller.get_episode_string(
+                                                                                                season_number,
+                                                                                                [first_episode_number]))
+                                                last_filenames = self.caller.get_filenames(show_title, season_number,
+                                                                                           self.caller.get_episode_string(
+                                                                                               season_number,
+                                                                                               [last_episode_number]))
+                                                get_sequential_episodes = False
+                                                if not self.caller.file_exists(first_filenames['final']):
+                                                    get_sequential_episodes = True
+                                                    self.caller.logger.error(
+                                                        "First sequential episode ({0}) missing - {1}".format(
+                                                            first_episode_title,
+                                                            episode_url))
+
+                                                if not self.caller.file_exists(last_filenames['final']):
+                                                    get_sequential_episodes = True
+                                                    self.caller.logger.error(
+                                                        "Last sequential episode ({0}) missing - {1}".format(
+                                                            title,
+                                                            episode_url))
+
+                                                if get_sequential_episodes:
+                                                    episode_numbers.append(first_episode_number)
+                                                    episode_numbers.append(last_episode_number)
                                         else:
                                             title_lower = title.lower()
                                             if title_lower in self.tvdb_episodes_data:
