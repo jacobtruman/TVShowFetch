@@ -140,14 +140,14 @@ class NickJr(Network):
                                                 if not self.caller.file_exists(first_filenames['final']):
                                                     get_sequential_episodes = True
                                                     self.caller.logger.warning(
-                                                        "First sequential episode ({0}) missing - {1}".format(
+                                                        "First multi-episode ({0}) missing - {1}".format(
                                                             first_episode_title,
                                                             episode_url))
 
                                                 if not self.caller.file_exists(last_filenames['final']):
                                                     get_sequential_episodes = True
                                                     self.caller.logger.warning(
-                                                        "Last sequential episode ({0}) missing - {1}".format(
+                                                        "Last multi-episode ({0}) missing - {1}".format(
                                                             title,
                                                             episode_url))
 
@@ -166,7 +166,7 @@ class NickJr(Network):
                                                     "Unable to find information for episode (SINGLE) '{0}' - skipping".format(
                                                         title))
                                                 continue
-                                        if not fail:
+                                        if not fail and len(episode_numbers) > 0:
                                             episode_number = episode_numbers[-1]
                                             episode_string = self.caller.get_episode_string(season_number,
                                                                                             episode_numbers)
