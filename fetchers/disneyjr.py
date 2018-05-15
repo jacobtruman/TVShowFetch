@@ -120,19 +120,6 @@ class DisneyJr(Network):
                                     fail = True
                                     break
 
-
-
-                            this_filenames = self.caller.get_filenames(show_title, season_number,
-                                                                       self.caller.get_episode_string(
-                                                                           season_number,
-                                                                           [this_episode_number]))
-                            if not self.caller.file_exists(this_filenames['final']):
-                                self.caller.logger.error(
-                                    "Second non-sequential episode ({0}) ({1}) missing - {2}".format(
-                                        title,
-                                        this_episode_number,
-                                        episode_url))
-
                             if first_episode_number is not None and last_episode_number is not None:
                                 first_filenames = self.caller.get_filenames(show_title, season_number,
                                                                        self.caller.get_episode_string(
