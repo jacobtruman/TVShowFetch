@@ -277,10 +277,16 @@ class TVShowFetch(object):
         """
         self.logger.add_to_log("\n### Execution Summary ###")
 
-        if len(self.downloaded) > 0:
-            self.logger.add_to_log("\t[+] {0} episodes downloaded".format(len(self.downloaded)))
-            for downloaded in self.downloaded:
-                self.logger.add_to_log("\t\t{0}".format(downloaded))
+        #if len(self.downloaded) > 0:
+        #    self.logger.add_to_log("\t[+] {0} episodes downloaded".format(len(self.downloaded)))
+        #    for downloaded in self.downloaded:
+        #        self.logger.add_to_log("\t\t{0}".format(downloaded))
+
+        successes = self.logger.get_logs_by_type("SUCCESS")
+        if len(successes) > 0:
+            self.logger.add_to_log("\t[-] {0} errors encountered during execution".format(len(successes)))
+            for success in successes:
+                self.logger.add_to_log("\t\t{0}".format(success))
 
         errors = self.logger.get_logs_by_type("ERROR")
         if len(errors) > 0:
