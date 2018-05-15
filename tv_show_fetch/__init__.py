@@ -43,7 +43,6 @@ class TVShowFetch(object):
             logger_config['log_file'] = '{0}/TVShowFetch_{1}.log'.format(self.log_dir, date)
         self.logger = trulogger.TruLogger(logger_config)
         self.thetvdbapi = thetvdbapi.TheTVDBApi(self, self.base_config['tvdb'])
-        self.downloaded = []
         self.extension = ".mp4"
 
         self.ydl_opts = {
@@ -222,7 +221,7 @@ class TVShowFetch(object):
                     self.logger.info("Downloading episode: {0}".format(filenames['final']))
                     try:
                         ydl.download([url])
-                        self.add_to_downloaded(filenames['final'])
+                        self.logger.success("Downloaded episode: {0}".format(filenames['final']))
                         return True
                     except Exception as e:
                         self.logger.error(
@@ -263,28 +262,15 @@ class TVShowFetch(object):
         self.logger.error(error)
         self.logger.reset_prefix()
 
-    def add_to_downloaded(self, filename):
-        """
-        Add filename provided to list of files downloaded
-        :param filename:
-        """
-        self.downloaded.append(filename)
-        self.logger.success("Downloaded episode: {0}".format(filename))
-
     def print_summary(self):
         """
         Print a summary of the process execution
         """
         self.logger.add_to_log("\n### Execution Summary ###")
 
-        #if len(self.downloaded) > 0:
-        #    self.logger.add_to_log("\t[+] {0} episodes downloaded".format(len(self.downloaded)))
-        #    for downloaded in self.downloaded:
-        #        self.logger.add_to_log("\t\t{0}".format(downloaded))
-
         successes = self.logger.get_logs_by_type("SUCCESS")
         if len(successes) > 0:
-            self.logger.add_to_log("\t[-] {0} errors encountered during execution".format(len(successes)))
+            self.logger.add_to_log("\t[+] {0} successful downloads".format(len(successes)))
             for success in successes:
                 self.logger.add_to_log("\t\t{0}".format(success))
 
