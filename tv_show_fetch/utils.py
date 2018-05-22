@@ -57,6 +57,7 @@ def sanitize_string(string, to_replace=None):
     to_replace['"'] = ""
     to_replace['!'] = ""
     to_replace[','] = ""
+    to_replace['.'] = ""
     to_replace[' - '] = " "
     to_replace['-'] = " "
 

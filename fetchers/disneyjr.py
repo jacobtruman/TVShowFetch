@@ -54,7 +54,7 @@ class DisneyJr(Network):
                             first_episode_number = None
                             last_episode_number = None
                             for title in titles:
-                                title = utils.sanitize_string(title)
+                                title = utils.sanitize_string(title, sanitize_string)
                                 title_lower = title.lower()
                                 if title_lower in self.tvdb_episodes_data:
                                     record = self.tvdb_episodes_data[title_lower]
