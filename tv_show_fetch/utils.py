@@ -54,6 +54,7 @@ def sanitize_string(string, to_replace=None):
     string = string.strip().lower()
     to_replace[' & '] = " and "
     to_replace["'"] = ""
+    to_replace[u"\u2019"] = ""
     to_replace['"'] = ""
     to_replace['!'] = ""
     to_replace[','] = ""
