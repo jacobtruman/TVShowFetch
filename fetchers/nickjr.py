@@ -17,13 +17,7 @@ class NickJr(Network):
         show_title = show_info['show_title']
         show_id = show_info['show_id']
 
-        if 'sanitize_string' in show_info:
-            sanitize_string = show_info['sanitize_string']
-        else:
-            sanitize_string = {}
-
-        sanitize_string['{0}: '.format(show_title)] = ''
-        sanitize_string['.'] = ''
+        sanitize_string = super(self.__class__, self).get_sanitize_string(show_info)
 
         episode_data = {'show': show_title, 'episodes': {}}
 

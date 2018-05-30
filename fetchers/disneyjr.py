@@ -17,10 +17,7 @@ class DisneyJr(Network):
         show_title = show_info['show_title']
         show_id = show_info['show_id']
 
-        if 'sanitize_string' in show_info:
-            sanitize_string = show_info['sanitize_string']
-        else:
-            sanitize_string = {}
+        sanitize_string = super(self.__class__, self).get_sanitize_string(show_info)
 
         api_base_url = 'https://api.presentation.abc.go.com'
         base_url = 'http://watchdisneyjunior.go.com'

@@ -19,10 +19,7 @@ class DisneyNow(Network):
         show_title = show_info['show_title']
         show_url = "{0}/shows/{1}".format(base_url, show_info['show_id'])
 
-        if 'sanitize_string' in show_info:
-            sanitize_string = show_info['sanitize_string']
-        else:
-            sanitize_string = {}
+        sanitize_string = super(self.__class__, self).get_sanitize_string(show_info)
 
         response = self.caller.request_data({"url": show_url})
         if response is not False:
