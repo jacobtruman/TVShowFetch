@@ -16,6 +16,7 @@ class Network(object):
                 sanitize_string = show_info['sanitize_string']
             else:
                 sanitize_string = {}
+            sanitize_string["{0}:".format(show_info['show_title'])] = ""
             self.tvdb_episodes_data = self.get_tvdb_episodes_data(
                 {'thetvdb_id': show_info['thetvdb_id'], "sanitize_string": sanitize_string})
             if self.tvdb_episodes_data is None:

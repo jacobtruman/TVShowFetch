@@ -62,16 +62,13 @@ def sanitize_string(string, to_replace=None):
     to_replace['.'] = ""
     to_replace[' - '] = " "
     to_replace['-'] = " "
+    to_replace[':'] = ""
 
     # replace custom replacements
     for search, replace in to_replace.iteritems():
         search = search.lower()
         if search in string:
             string = string.replace(search, replace.lower())
-
-    if ':' in string:
-        position = string.find(':') + 1
-        string = string[position:None].strip()
 
     # strip off leading "the "
     if string.lower().startswith("the "):
