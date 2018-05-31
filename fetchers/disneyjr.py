@@ -19,6 +19,8 @@ class DisneyJr(Network):
 
         sanitize_string = super(self.__class__, self).get_sanitize_string(show_info)
 
+        exclusions = super(self.__class__, self).get_exclusions(show_info)
+
         api_base_url = 'https://api.presentation.abc.go.com'
         base_url = 'http://watchdisneyjunior.go.com'
 
@@ -53,6 +55,9 @@ class DisneyJr(Network):
                             for title in titles:
                                 title = utils.sanitize_string(title, sanitize_string)
                                 title_lower = title.lower()
+                                if title_lower in exclusions:
+                                    self.caller.logger.warning("Excluded episode '{0}' - skipping".format(title))
+                                    continue
                                 if title_lower in self.tvdb_episodes_data:
                                     record = self.tvdb_episodes_data[title_lower]
                                     if season_number == 0:
@@ -146,7 +151,10 @@ class DisneyJr(Network):
                                     episode_numbers.append(last_episode_number)
                         else:
                             title_lower = title.lower()
-                            if title_lower in self.tvdb_episodes_data:
+                            if title_lower in exclusions:
+                                self.caller.logger.warning("Excluded episode '{0}' - skipping".format(title))
+                                continue
+                            elif title_lower in self.tvdb_episodes_data:
                                 record = self.tvdb_episodes_data[title_lower]
                                 season_number = record['season_number']
                                 episode_numbers.append(record['episode_number'])

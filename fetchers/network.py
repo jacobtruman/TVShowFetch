@@ -47,3 +47,10 @@ class Network(object):
             sanitize_string = {}
         sanitize_string["{0}: ".format(show_info['show_title'])] = ""
         return sanitize_string
+
+    def get_exclusions(self, show_info):
+        if 'exclude' in show_info:
+            exclusions = show_info['exclude']
+        else:
+            exclusions = []
+        return exclusions
