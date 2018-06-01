@@ -1,5 +1,6 @@
 import requests
 import os
+import time
 
 
 def request_data(args):
@@ -8,6 +9,8 @@ def request_data(args):
     :param args:
     :return: data from url
     """
+    sleep_time = 5
+    max_retries = 5
     if 'logger' in args:
         logger = args['logger']
     else:
@@ -36,10 +39,20 @@ def request_data(args):
     if response.status_code == 200:
         return response
     else:
-        if logger is not None:
-            logger.error(
-                "Something went wrong: '{0}' returned status code {1}".format(args['url'], response.status_code))
-        return False
+        if 'try' not in args:
+            args['try'] = 0
+        args['try'] += 1
+        if args['try'] >= max_retries:
+            if logger is not None:
+                logger.error(
+                    "Something went wrong: '{0}' returned status code {1}".format(args['url'], response.status_code))
+            return False
+        else:
+            if logger is not None:
+                logger.warning(
+                    "Something went wrong: '{0}' returned status code {1}. Sleeping {2} seconds and trying again".format(args['url'], response.status_code, sleep_time))
+            time.sleep(sleep_time)
+            return request_data(args)
 
 
 def sanitize_string(string, to_replace=None):
