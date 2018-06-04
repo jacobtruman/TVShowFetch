@@ -212,8 +212,8 @@ class TVShowFetch(object):
                 {
                     'key': 'ExecAfterDownload',
                     'exec_cmd': "if [[ $(wc -c '" + filenames[
-                        'final'] + "' | awk '{print $1}') -ge $(ls -l {} | awk '{print $1}') ]]; then echo 'Moving file'; mv {} '" +
-                                filenames['final'] + "'; else echo 'Removing file'; rm {}; fi"
+                        'final'] + "' | awk '{print $1}') -ge $(ls -l {} | awk '{print $1}') ]]; then echo 'Moving file'; mv -f {} '" +
+                                filenames['final'] + "'; else echo 'Removing file'; rm -f {}; fi"
                 }
             ]
             if self.execute:
