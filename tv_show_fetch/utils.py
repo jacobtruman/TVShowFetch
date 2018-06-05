@@ -76,6 +76,7 @@ def sanitize_string(string, to_replace=None):
     to_replace[' - '] = " "
     to_replace['-'] = " "
     to_replace[':'] = ""
+    to_replace['?'] = ""
 
     # replace custom replacements
     for search, replace in to_replace.iteritems():
