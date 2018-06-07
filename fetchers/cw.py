@@ -33,6 +33,8 @@ class CW(Network):
                     if episode_info['type'] == "Full":
                         season_number = episode_info['season']
                         episode_number = episode_info['episode']
+                        if len(episode_number) > 2 and episode_number[:len(season_number)] is season_number:
+                            episode_number = episode_number[:-len(season_number)]
 
                         episode_string = self.caller.get_episode_string(season_number, [episode_number])
 
