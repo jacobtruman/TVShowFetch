@@ -34,7 +34,7 @@ class CW(Network):
                         season_number = episode_info['season']
                         episode_number = episode_info['episode']
                         if len(episode_number) > 2 and episode_number[:len(season_number)] is season_number:
-                            episode_number = episode_number[-len(season_number):]
+                            episode_number = episode_number[-2:]
 
                         episode_string = self.caller.get_episode_string(season_number, [episode_number])
 
